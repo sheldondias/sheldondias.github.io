@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corridas | Sheldon Dias Fotografia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            background: rgba(15, 15, 15, 0.75);
+            z-index: 1000;
+        }
+
+        nav h1 {
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+        }
+
+        nav h1 a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.7;
+        }
+
+        nav a.ativo {
+            opacity: 1;
+            border-bottom: 1px solid white;
+            padding-bottom: 4px;
+        }
+
+        .hero-categoria {
+            height: 60vh;
+            background:
+                linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.75)),
+                url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1600")
+                center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero-categoria span {
+            color: #888;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .hero-categoria h2 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .hero-categoria p {
+            font-size: 1.1rem;
+            color: #d0d0d0;
+            max-width: 600px;
+        }
+
+        section {
+            padding: 100px 10%;
+        }
+
+        section h2 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+        }
+
+        .sessoes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 25px;
+        }
+
+        .sessoes-status {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #888;
+            padding: 40px 0;
+        }
+
+        .sessao {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            cursor: pointer;
+            display: block;
+            color: white;
+            text-decoration: none;
+        }
+
+        .sessao img {
+            width: 100%;
+            height: 460px;
+            object-fit: cover;
+            filter: blur(2px) brightness(0.55);
+            transition: 0.6s;
+        }
+
+        .sessao:hover img {
+            transform: scale(1.05);
+            filter: blur(1px) brightness(0.5);
+        }
+
+        .sessao-info {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 36px;
+        }
+
+        .sessao-eyebrow {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+        }
+
+        .sessao-info h3 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.6);
+        }
+
+        .sessao-meta {
+            position: absolute;
+            left: 36px;
+            right: 36px;
+            bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid #222;
+            color: #888;
+        }
+
+        footer a {
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+
+            nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .hero-categoria h2 {
+                font-size: 2.3rem;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <h1><a href="index.html">SHELDON DIAS</a></h1>
+
+        <ul>
+            <li><a href="corridas.html" class="ativo">Corridas</a></li>
+            <li><a href="eventos.html">Eventos</a></li>
+            <li><a href="retratos.html">Retratos</a></li>
+            <li><a href="index.html#contato">Contato</a></li>
+        </ul>
+    </nav>
+
+    <div class="hero-categoria">
+        <span>Trabalhos — Corridas</span>
+        <h2>Corridas</h2>
+        <p>Ritmo, esforço e a linha de chegada. Cada prova reunida em uma sessão — clique para ver todas as fotos do seu pelotão.</p>
+    </div>
+
+    <section id="sessoes">
+
+        <h2>Sessões</h2>
+
+        <div class="sessoes" id="sessoes">
+            <p class="sessoes-status">Carregando sessões...</p>
+        </div>
+
+    </section>
+
+    <footer>
+        © 2026 Sheldon Dias — Todos os direitos reservados. · <a href="index.html">Voltar ao início</a>
+    </footer>
+
+    <script src="dados.js"></script>
+    <script>
+
+        async function carregarSessoes() {
+            const container = document.getElementById("sessoes");
+
+            let todas;
+            try {
+                todas = await buscarSessoes();
+            } catch (erro) {
+                container.innerHTML = '<p class="sessoes-status">Não foi possível carregar as sessões. Verifique o link da planilha em dados.js.</p>';
+                return;
+            }
+
+            const desta = todas.filter(function (s) {
+                return s.categoria.toLowerCase() === "corridas";
+            });
+
+            if (!desta.length) {
+                container.innerHTML = '<p class="sessoes-status">Nenhuma sessão de Corridas cadastrada ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = desta.map(function (s) {
+                return `
+                    <a class="sessao" href="galeria.html?sessao=${encodeURIComponent(s.slug)}">
+                        <img src="${s.capa}" alt="">
+                        <div class="sessao-info">
+                            <span class="sessao-eyebrow">${s.cliente}</span>
+                            <h3>${s.titulo}</h3>
+                        </div>
+                        <div class="sessao-meta">
+                            <span>${s.data}</span>
+                            <span>${s.local}</span>
+                        </div>
+                    </a>
+                `;
+            }).join("");
+        }
+
+        carregarSessoes();
+
+    </script>
+
+</body>
+</html>
