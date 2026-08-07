@@ -94,8 +94,10 @@
         }
 
         .album:hover {
-            filter: grayscale(0%);
             transform: scale(1.03);
+            .album-image img {
+                        filter: grayscale(0%);
+            }
         }
 
         .album-local {
