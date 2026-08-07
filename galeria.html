@@ -295,10 +295,9 @@
         <h1><a href="index.html">SHELDON DIAS</a></h1>
 
         <ul>
-            <li><a href="corridas.html">Esportes</a></li>
+            <li><a href="esportes.html">Esportes</a></li>
             <li><a href="eventos.html">Eventos</a></li>
             <li><a href="retratos.html">Retratos</a></li>
-            <li><a href="index.html#contato">Contato</a></li>
         </ul>
     </nav>
 
@@ -379,7 +378,7 @@
             header.className = "galeria-header";
             header.innerHTML = `
                 <a class="voltar" href="${sessao.categoriaHref}">← Voltar para ${sessao.categoria}</a>
-                <div class="galeria-eyebrow">${sessao.categoria} — ${sessao.cliente}</div>
+                <div class="galeria-eyebrow">${sessao.cliente}</div>
                 <h2>${sessao.titulo}</h2>
                 <div class="galeria-meta">
                     <div><strong>Data</strong>${sessao.data}</div>
@@ -413,7 +412,7 @@
                 <div class="vazio">
                     <h2>Sessão não encontrada</h2>
                     <p style="margin-top:16px;">Escolha uma categoria para ver as sessões disponíveis:
-                    <a href="corridas.html">Corridas</a>, <a href="eventos.html">Eventos</a> ou <a href="retratos.html">Retratos</a>.</p>
+                    <a href="esportes.html">Esportes</a>, <a href="eventos.html">Eventos</a> ou <a href="retratos.html">Retratos</a>.</p>
                 </div>
             `;
         }

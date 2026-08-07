@@ -1,8 +1,8 @@
 /*
     dados.js
     ---------
-    Busca as sessões (Corridas, Eventos, Retratos) direto de uma planilha
-    do Google Sheets publicada na web como CSV. Usado por corridas.html,
+    Busca as sessões (Esportes, Eventos, Retratos) direto de uma planilha
+    do Google Sheets publicada na web como CSV. Usado por esportes.html,
     eventos.html, retratos.html e galeria.html.
 
     COMO CONFIGURAR A PLANILHA:
@@ -10,7 +10,7 @@
        slug | categoria | cliente | titulo | local | data | capa | fotos
 
        - slug:      identificador único, sem espaço/acento (ex: corrida-noturna-joao)
-       - categoria: exatamente "Corridas", "Eventos" ou "Retratos"
+       - categoria: exatamente "Esportes", "Eventos" ou "Retratos"
        - cliente:   nome que aparece como etiqueta pequena (ex: João Pedro)
        - titulo:    título da sessão (ex: Corrida Noturna do Parque)
        - local:     ex: Cuiabá, MT
@@ -39,7 +39,7 @@
 */
 
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1gDgdl50T0VC5pQKH-6e8MHRJk5gs7CJ3HchopIP5Hx4/export?format=csv&gid=316155775";
-const DRIVE_API_KEY = "AIzaSyA7-Q5nHRW6g1pQOFN2p7ugx_RgoC7urBE";
+const DRIVE_API_KEY = "COLE_AQUI_SUA_CHAVE_DE_API_DO_GOOGLE_DRIVE";
 
 // Lê um texto CSV (lidando com campos entre aspas que contêm vírgulas) e
 // devolve uma lista de objetos, usando a primeira linha como cabeçalho.
