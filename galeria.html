@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria | Sheldon Dias Fotografia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            background: rgba(15, 15, 15, 0.75);
+            z-index: 1000;
+        }
+
+        nav h1 {
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+        }
+
+        nav h1 a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.7;
+        }
+
+        .galeria-header {
+            padding: 160px 10% 60px;
+            border-bottom: 1px solid #222;
+        }
+
+        .voltar {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+            transition: 0.3s;
+        }
+
+        .voltar:hover {
+            color: white;
+        }
+
+        .galeria-eyebrow {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 14px;
+        }
+
+        .galeria-header h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .galeria-meta {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            color: #bdbdbd;
+            font-size: 0.9rem;
+        }
+
+        .galeria-meta strong {
+            display: block;
+            color: #666;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .galeria-grid {
+            padding: 60px 10% 120px;
+            column-count: 3;
+            column-gap: 18px;
+        }
+
+        .galeria-grid figure {
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: zoom-in;
+            break-inside: avoid;
+            margin-bottom: 18px;
+        }
+
+        .galeria-grid img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: 0.5s;
+        }
+
+        .galeria-grid figure:hover img {
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 1100px) {
+
+            .galeria-grid {
+                column-count: 2;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .galeria-grid {
+                column-count: 1;
+            }
+
+        }
+
+        .vazio {
+            padding: 200px 10%;
+            text-align: center;
+            color: #888;
+        }
+
+        .vazio a {
+            color: white;
+        }
+
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 40px;
+        }
+
+        .lightbox.aberto {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+        }
+
+        .lightbox-fechar {
+            position: absolute;
+            top: 30px;
+            right: 5%;
+            background: none;
+            border: 1px solid #444;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .lightbox-fechar:hover {
+            background: white;
+            color: black;
+        }
+
+        .lightbox-seta {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid #444;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-seta:hover {
+            background: white;
+            color: black;
+        }
+
+        .lightbox-anterior {
+            left: 5%;
+        }
+
+        .lightbox-proxima {
+            right: 5%;
+        }
+
+        .lightbox-contador {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #888;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid #222;
+            color: #888;
+        }
+
+        footer a {
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+
+            nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .galeria-header {
+                padding-top: 190px;
+            }
+
+            .galeria-header h2 {
+                font-size: 2.2rem;
+            }
+
+            .lightbox-seta {
+                width: 40px;
+                height: 40px;
+            }
+
+            .lightbox-anterior {
+                left: 12px;
+            }
+
+            .lightbox-proxima {
+                right: 12px;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <h1><a href="index.html">SHELDON DIAS</a></h1>
+
+        <ul>
+            <li><a href="corridas.html">Corridas</a></li>
+            <li><a href="eventos.html">Eventos</a></li>
+            <li><a href="retratos.html">Retratos</a></li>
+            <li><a href="index.html#contato">Contato</a></li>
+        </ul>
+    </nav>
+
+    <div id="conteudo"></div>
+
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-fechar" id="lightboxFechar">✕</button>
+        <button class="lightbox-seta lightbox-anterior" id="lightboxAnterior">‹</button>
+        <img id="lightboxImg" src="" alt="">
+        <button class="lightbox-seta lightbox-proxima" id="lightboxProxima">›</button>
+        <span class="lightbox-contador" id="lightboxContador"></span>
+    </div>
+
+    <footer>
+        © 2026 Sheldon Dias — Todos os direitos reservados. · <a href="index.html">Voltar ao início</a>
+    </footer>
+
+    <script src="dados.js"></script>
+    <script>
+
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get("sessao");
+        const conteudo = document.getElementById("conteudo");
+
+        let sessao = null;
+        let indiceAtual = -1;
+
+        const lightbox = document.getElementById("lightbox");
+        const lightboxImg = document.getElementById("lightboxImg");
+        const lightboxContador = document.getElementById("lightboxContador");
+
+        function mostrarFoto(indice) {
+            if (!sessao) return;
+            const total = sessao.fotos.length;
+            indiceAtual = (indice + total) % total;
+            lightboxImg.src = sessao.fotos[indiceAtual];
+            lightboxContador.textContent = (indiceAtual + 1) + " / " + total;
+        }
+
+        function abrirLightbox(indice) {
+            mostrarFoto(indice);
+            lightbox.classList.add("aberto");
+        }
+
+        function fecharLightbox() {
+            lightbox.classList.remove("aberto");
+            lightboxImg.src = "";
+        }
+
+        function fotoAnterior() {
+            mostrarFoto(indiceAtual - 1);
+        }
+
+        function fotoProxima() {
+            mostrarFoto(indiceAtual + 1);
+        }
+
+        document.getElementById("lightboxFechar").addEventListener("click", fecharLightbox);
+        document.getElementById("lightboxAnterior").addEventListener("click", fotoAnterior);
+        document.getElementById("lightboxProxima").addEventListener("click", fotoProxima);
+
+        lightbox.addEventListener("click", function (e) {
+            if (e.target === lightbox) fecharLightbox();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (!lightbox.classList.contains("aberto")) return;
+            if (e.key === "Escape") fecharLightbox();
+            if (e.key === "ArrowLeft") fotoAnterior();
+            if (e.key === "ArrowRight") fotoProxima();
+        });
+
+        function renderizarSessao() {
+
+            document.title = sessao.titulo + " — " + sessao.cliente + " | Sheldon Dias Fotografia";
+
+            const header = document.createElement("div");
+            header.className = "galeria-header";
+            header.innerHTML = `
+                <a class="voltar" href="${sessao.categoriaHref}">← Voltar para ${sessao.categoria}</a>
+                <div class="galeria-eyebrow">${sessao.categoria} — ${sessao.cliente}</div>
+                <h2>${sessao.titulo}</h2>
+                <div class="galeria-meta">
+                    <div><strong>Data</strong>${sessao.data}</div>
+                    <div><strong>Local</strong>${sessao.local}</div>
+                    <div><strong>Fotos</strong>${sessao.fotos.length}</div>
+                </div>
+            `;
+
+            const grid = document.createElement("div");
+            grid.className = "galeria-grid";
+
+            sessao.fotos.forEach(function (url, indice) {
+                const figure = document.createElement("figure");
+                const img = document.createElement("img");
+                img.src = url;
+                img.loading = "lazy";
+                img.alt = sessao.titulo;
+                img.addEventListener("click", function () {
+                    abrirLightbox(indice);
+                });
+                figure.appendChild(img);
+                grid.appendChild(figure);
+            });
+
+            conteudo.appendChild(header);
+            conteudo.appendChild(grid);
+        }
+
+        function renderizarNaoEncontrada() {
+            conteudo.innerHTML = `
+                <div class="vazio">
+                    <h2>Sessão não encontrada</h2>
+                    <p style="margin-top:16px;">Escolha uma categoria para ver as sessões disponíveis:
+                    <a href="corridas.html">Corridas</a>, <a href="eventos.html">Eventos</a> ou <a href="retratos.html">Retratos</a>.</p>
+                </div>
+            `;
+        }
+
+        function renderizarErro() {
+            conteudo.innerHTML = `
+                <div class="vazio">
+                    <h2>Não foi possível carregar</h2>
+                    <p style="margin-top:16px;">Verifique se o link da planilha está configurado em dados.js.</p>
+                </div>
+            `;
+        }
+
+        async function iniciar() {
+            try {
+                const todas = await buscarSessoes();
+                sessao = todas.find(function (s) { return s.slug === slug; }) || null;
+            } catch (erro) {
+                renderizarErro();
+                return;
+            }
+
+            if (sessao) {
+                renderizarSessao();
+            } else {
+                renderizarNaoEncontrada();
+            }
+        }
+
+        iniciar();
+
+    </script>
+
+</body>
+</html>
