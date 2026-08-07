@@ -39,7 +39,7 @@
 */
 
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1gDgdl50T0VC5pQKH-6e8MHRJk5gs7CJ3HchopIP5Hx4/export?format=csv&gid=316155775";
-const DRIVE_API_KEY = "COLE_AQUI_SUA_CHAVE_DE_API_DO_GOOGLE_DRIVE";
+const DRIVE_API_KEY = "AIzaSyA7-Q5nHRW6g1pQOFN2p7ugx_RgoC7urBE";
 
 // Lê um texto CSV (lidando com campos entre aspas que contêm vírgulas) e
 // devolve uma lista de objetos, usando a primeira linha como cabeçalho.
