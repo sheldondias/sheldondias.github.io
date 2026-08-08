@@ -25,6 +25,11 @@
             color: white;
         }
 
+        img {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
         nav {
             position: fixed;
             top: 0;
@@ -289,6 +294,15 @@
 
         carregarSessoes();
 
+    </script>
+
+    <script>
+        document.addEventListener("contextmenu", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+        document.addEventListener("dragstart", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
     </script>
 
 </body>

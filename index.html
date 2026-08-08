@@ -26,6 +26,11 @@
             color: white;
         }
 
+        img {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
         nav {
             position: fixed;
             top: 0;
@@ -93,15 +98,13 @@
             filter: grayscale(100%);
             transition: 0.6s;
         }
-        
-                .album:hover {
+        .album:hover {
             transform: scale(1.02);
         }
 
         .album:hover .album-imagem img {
             filter: grayscale(0%);
         }
-
 
         .album-local {
             position: absolute;
@@ -113,15 +116,6 @@
             font-size: 0.75rem;
             letter-spacing: 2px;
             text-transform: uppercase;
-        }
-
-      
-        .sobre {
-            max-width: 900px;
-            margin: auto;
-            text-align: center;
-            line-height: 1.8;
-            color: #d0d0d0;
         }
 
         .contato {
@@ -160,8 +154,6 @@
             }
 
         }
-
-    
 
 .sobre-container {
     display: grid;
@@ -386,6 +378,15 @@
         © 2026 Sheldon Dias — Todos os direitos reservados.
 
     </footer>
+
+    <script>
+        document.addEventListener("contextmenu", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+        document.addEventListener("dragstart", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+    </script>
 
 </body>
 </html>
