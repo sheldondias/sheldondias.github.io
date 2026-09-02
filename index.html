@@ -113,7 +113,7 @@
             height: 98%;
             object-fit: cover;
             filter: grayscale(100%);
-            transition: opacity 0.6s ease, filter 0.6s;
+            transition: opacity 1s ease-in-out, filter 0.6s;
         }
         .album:hover {
             transform: scale(1.02);
@@ -402,8 +402,17 @@
         // Troca a foto de cada card (Eventos/Esportes/Retratos) automaticamente,
         // em looping infinito, usando as fotos de todas as sessões daquela categoria.
         // Mantém exatamente o mesmo <img> e o mesmo layout original — só troca o src.
-        const INTERVALO_SLIDE = 3200; // tempo (ms) que cada foto fica visível
-        const DURACAO_FADE = 600;     // precisa bater com a transition do CSS
+        const INTERVALO_SLIDE = 4000; // tempo (ms) que cada foto fica visível
+        const DURACAO_FADE = 1000;    // precisa bater com a transition do CSS
+
+        // Pré-carrega as fotos no cache do navegador, assim quando a hora de
+        // trocar chegar a imagem já está pronta e o fade fica suave (sem "pulo").
+        function precarregarFotos(fotos) {
+            fotos.forEach(function (url) {
+                const pre = new Image();
+                pre.src = url;
+            });
+        }
 
         function iniciarSlideshow(img, fotos) {
             // embaralha a ordem para variar o card a cada visita
@@ -415,6 +424,8 @@
             }
 
             if (fotos.length < 2) return;
+
+            precarregarFotos(fotos);
 
             let indice = 0;
             setInterval(function () {
