@@ -212,7 +212,7 @@ async function buscarSessoes() {
         throw new Error("Não foi possível carregar a planilha (" + resposta.status + ")");
     }
 
-    const texto = await resposta.text();
+    const texto = (await resposta.text()).replace(/^\uFEFF/, "");
     const linhas = analisarCsv(texto).filter(function (l) { return l.slug; });
 
     return Promise.all(linhas.map(async function (l) {
