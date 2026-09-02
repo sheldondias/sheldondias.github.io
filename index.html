@@ -106,26 +106,15 @@
 
         .album-imagem {
             position: relative;
-            aspect-ratio: 4 / 5;
-            overflow: hidden;
-            background: #111;
         }
 
         .album-imagem img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            width: 98%;
+            height: 98%;
+            object-fit: cover;
             filter: grayscale(100%);
-            opacity: 0;
-            transition: opacity 1.4s ease, filter 0.6s;
+            transition: opacity 0.6s ease, filter 0.6s;
         }
-
-        .album-imagem img.slide-ativa {
-            opacity: 1;
-        }
-
         .album:hover {
             transform: scale(1.02);
         }
@@ -291,7 +280,7 @@
             <a class="album" href="eventos.html">
 
                 <div class="album-imagem" data-categoria="Eventos">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786129198/IMG_7778_rnlzh5.jpg" alt="" class="slide-ativa">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786129198/IMG_7778_rnlzh5.jpg" alt="">
                     <span class="album-local">Eventos</span>
                 </div>
 
@@ -300,7 +289,7 @@
             <a class="album" href="esportes.html">
 
                 <div class="album-imagem" data-categoria="Esportes">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786127286/IMG_4354_nupiwe.jpg" alt="" class="slide-ativa">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786127286/IMG_4354_nupiwe.jpg" alt="">
                     <span class="album-local">Esportes</span>
                 </div>
 
@@ -309,7 +298,7 @@
             <a class="album" href="retratos.html">
 
                 <div class="album-imagem" data-categoria="Retratos">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786126774/IMG_3387_uqaogo.jpg" alt="" class="slide-ativa">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786126774/IMG_3387_uqaogo.jpg" alt="">
                     <span class="album-local">Retratos</span>
                 </div>
 
@@ -410,11 +399,13 @@
     <script src="dados.js"></script>
     <script>
 
-        // Troca as fotos de cada card (Eventos/Esportes/Retratos) automaticamente,
+        // Troca a foto de cada card (Eventos/Esportes/Retratos) automaticamente,
         // em looping infinito, usando as fotos de todas as sessões daquela categoria.
+        // Mantém exatamente o mesmo <img> e o mesmo layout original — só troca o src.
         const INTERVALO_SLIDE = 3200; // tempo (ms) que cada foto fica visível
+        const DURACAO_FADE = 600;     // precisa bater com a transition do CSS
 
-        function iniciarSlideshow(container, fotos) {
+        function iniciarSlideshow(img, fotos) {
             // embaralha a ordem para variar o card a cada visita
             for (let i = fotos.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -423,27 +414,16 @@
                 fotos[j] = tmp;
             }
 
-            const marcador = container.querySelector(".album-local");
-            const imgInicial = container.querySelector("img");
-            imgInicial.src = fotos[0];
-
-            fotos.slice(1).forEach(function (url) {
-                const img = document.createElement("img");
-                img.src = url;
-                img.alt = "";
-                img.loading = "lazy";
-                container.insertBefore(img, marcador);
-            });
-
             if (fotos.length < 2) return;
 
             let indice = 0;
-            const imagens = container.querySelectorAll("img");
-
             setInterval(function () {
-                imagens[indice].classList.remove("slide-ativa");
-                indice = (indice + 1) % imagens.length;
-                imagens[indice].classList.add("slide-ativa");
+                img.style.opacity = 0;
+                setTimeout(function () {
+                    indice = (indice + 1) % fotos.length;
+                    img.src = fotos[indice];
+                    img.style.opacity = 1;
+                }, DURACAO_FADE);
             }, INTERVALO_SLIDE);
         }
 
@@ -452,9 +432,11 @@
             try {
                 sessoes = await buscarSessoes();
             } catch (erro) {
-                console.error("Não foi possível carregar as fotos das categorias:", erro);
+                console.error("[slideshow] Não foi possível carregar a planilha/fotos. O card vai ficar com a foto fixa. Detalhe do erro:", erro);
                 return; // mantém a foto estática original de cada card
             }
+
+            console.log("[slideshow] Sessões carregadas da planilha:", sessoes.length);
 
             ["Eventos", "Esportes", "Retratos"].forEach(function (categoria) {
                 const container = document.querySelector('.album-imagem[data-categoria="' + categoria + '"]');
@@ -475,9 +457,17 @@
                     });
                 });
 
-                if (!fotos.length) return; // mantém a foto estática original do card
+                console.log("[slideshow] " + categoria + ": " + destaCategoria.length + " sessão(ões), " + fotos.length + " foto(s) no total.");
 
-                iniciarSlideshow(container, fotos);
+                if (!fotos.length) {
+                    console.warn("[slideshow] " + categoria + " sem fotos — card vai ficar fixo nessa categoria.");
+                    return;
+                }
+                if (fotos.length < 2) {
+                    console.warn("[slideshow] " + categoria + " tem só 1 foto — nada para revezar ainda. Adicione mais sessões/fotos na planilha.");
+                }
+
+                iniciarSlideshow(container.querySelector("img"), fotos);
             });
         }
 
