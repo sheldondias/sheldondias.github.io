@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar senha de galeria | Sheldon Dias Fotografia</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 8%;
+        }
+
+        .caixa {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        .eyebrow {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        p.explicacao {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+            margin-bottom: 24px;
+        }
+
+        input:focus {
+            border-color: #666;
+        }
+
+        .resultado {
+            display: none;
+        }
+
+        .resultado.visivel {
+            display: block;
+        }
+
+        .resultado label {
+            margin-top: 10px;
+        }
+
+        .hash-caixa {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hash-caixa input {
+            margin-bottom: 0;
+            font-size: 0.8rem;
+            letter-spacing: 0;
+            color: #bdbdbd;
+        }
+
+        button {
+            padding: 14px 18px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            color: #0f0f0f;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .copiado {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+            min-height: 16px;
+        }
+
+        .aviso {
+            margin-top: 34px;
+            padding-top: 24px;
+            border-top: 1px solid #222;
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="caixa">
+        <div class="eyebrow">Sheldon Dias — ferramenta interna</div>
+        <h1>Gerar senha de galeria</h1>
+        <p class="explicacao">
+            Digite aqui a senha que você quer usar para uma galeria (a que o
+            cliente vai digitar). Esta página transforma a senha em um
+            código (hash) — é ESSE código que você cola na coluna "senha"
+            da planilha, nunca a senha em texto puro.
+        </p>
+
+        <label for="input-senha">Senha da galeria</label>
+        <input type="text" id="input-senha" placeholder="Ex: joao2026" autocomplete="off">
+
+        <div class="resultado" id="resultado">
+            <label for="input-hash">Cole isto na coluna "senha" da planilha</label>
+            <div class="hash-caixa">
+                <input type="text" id="input-hash" readonly>
+                <button id="botao-copiar">Copiar</button>
+            </div>
+            <div class="copiado" id="copiado"></div>
+        </div>
+
+        <div class="aviso">
+            Guarde a senha em texto puro em algum lugar seu (para poder
+            avisar o cliente) — esta página não guarda nada, e o hash não
+            pode ser revertido de volta para a senha original.
+        </div>
+    </div>
+
+    <script>
+
+        async function sha256Hex(texto) {
+            const bytes = new TextEncoder().encode(texto);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+            return Array.from(new Uint8Array(hashBuffer))
+                .map(function (b) { return b.toString(16).padStart(2, "0"); })
+                .join("");
+        }
+
+        const input = document.getElementById("input-senha");
+        const resultado = document.getElementById("resultado");
+        const inputHash = document.getElementById("input-hash");
+        const copiado = document.getElementById("copiado");
+        const botaoCopiar = document.getElementById("botao-copiar");
+
+        let atualizando = null;
+
+        input.addEventListener("input", function () {
+            clearTimeout(atualizando);
+            copiado.textContent = "";
+
+            if (!input.value) {
+                resultado.classList.remove("visivel");
+                return;
+            }
+
+            atualizando = setTimeout(async function () {
+                const hash = await sha256Hex(input.value);
+                inputHash.value = hash;
+                resultado.classList.add("visivel");
+            }, 150);
+        });
+
+        botaoCopiar.addEventListener("click", async function () {
+            try {
+                await navigator.clipboard.writeText(inputHash.value);
+                copiado.textContent = "Copiado.";
+            } catch (erro) {
+                inputHash.select();
+                copiado.textContent = "Selecionado — use Ctrl+C (ou Cmd+C) para copiar.";
+            }
+        });
+
+    </script>
+
+</body>
+</html>

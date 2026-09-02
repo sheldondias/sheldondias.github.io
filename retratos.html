@@ -267,7 +267,7 @@
             }
 
             const desta = todas.filter(function (s) {
-                return s.categoria.toLowerCase() === "retratos";
+                return s.categoria.toLowerCase() === "retratos" && !s.protegida;
             });
 
             if (!desta.length) {

@@ -7,7 +7,7 @@
 
     COMO CONFIGURAR A PLANILHA:
     1. Crie uma planilha no Google Sheets com esta linha de cabeçalho na primeira linha:
-       slug | categoria | cliente | titulo | local | data | capa | fotos
+       slug | categoria | cliente | titulo | local | data | capa | fotos | senha
 
        - slug:      identificador único, sem espaço/acento (ex: corrida-noturna-joao)
        - categoria: exatamente "Esportes", "Eventos" ou "Retratos"
@@ -24,6 +24,18 @@
                      "Qualquer pessoa com o link - Leitor".
                      (Também aceita, como antes, uma lista de links diretos
                      separados por vírgula, se preferir não usar pasta.)
+       - senha:     opcional. Se preenchida, a sessão fica ESCONDIDA — não
+                     aparece na página da categoria nem na home, e as fotos
+                     só são buscadas depois que o cliente digitar a senha
+                     certa em galeria.html (só quem tem o link direto com
+                     o slug consegue chegar nela).
+
+                     IMPORTANTE: cole aqui o HASH da senha, não a senha em
+                     texto puro (a planilha é publicada como CSV público, e
+                     qualquer texto puro nela pode ser lido por qualquer
+                     pessoa). Use a página gerar-senha.html incluída no
+                     site para transformar a senha desejada em hash antes
+                     de colar na planilha.
 
     2. No Google Sheets: Arquivo > Compartilhar > Publicar na web > selecione a
        aba > formato "Valores separados por vírgula (.csv)" > Publicar.
@@ -90,6 +102,17 @@ function analisarCsv(texto) {
     });
 }
 
+// Calcula o hash SHA-256 (em hexadecimal) de um texto. Usado para comparar
+// a senha digitada pelo cliente com o hash guardado na planilha, sem nunca
+// manusear a senha em texto puro.
+async function sha256Hex(texto) {
+    const bytes = new TextEncoder().encode(texto);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(function (b) { return b.toString(16).padStart(2, "0"); })
+        .join("");
+}
+
 // Extrai o ID de uma pasta a partir de um link de pasta do Google Drive.
 // Aceita formatos como /drive/folders/ID, /drive/u/0/folders/ID ou ?id=ID.
 function extrairIdPastaDrive(link) {
@@ -104,16 +127,27 @@ function urlFotoDrive(idArquivo, largura) {
     return "https://drive.google.com/thumbnail?id=" + idArquivo + "&sz=w" + (largura || 1600);
 }
 
-// Se o link for de um ARQUIVO individual do Drive, converte para um link de
-// imagem exibível. Se já for um link direto normal (Cloudinary, etc.), devolve como está.
-function converterLinkDrive(link) {
-    if (!link) return link;
-    let m = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (!m) m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    return m ? urlFotoDrive(m[1], 1600) : link;
+// Monta a URL de DOWNLOAD (arquivo original, não a miniatura) a partir do
+// ID de um arquivo do Drive.
+function urlDownloadDrive(idArquivo) {
+    return "https://drive.google.com/uc?export=download&id=" + idArquivo;
 }
 
-// Lista todas as imagens dentro de uma pasta pública do Drive.
+// Se o link for de um ARQUIVO individual do Drive, devolve {url, download}
+// prontos para exibir/baixar. Se já for um link direto normal (Cloudinary,
+// etc.), usa o próprio link para as duas coisas.
+function converterLinkDrive(link) {
+    if (!link) return { url: link, download: link };
+    let m = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (!m) m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m) {
+        return { url: urlFotoDrive(m[1], 1600), download: urlDownloadDrive(m[1]) };
+    }
+    return { url: link, download: link };
+}
+
+// Lista todas as imagens dentro de uma pasta pública do Drive, já com o
+// link de exibição e o link de download de cada uma.
 async function buscarFotosDaPasta(idPasta) {
     const consulta = "'" + idPasta + "' in parents and mimeType contains 'image/' and trashed = false";
     const url = "https://www.googleapis.com/drive/v3/files"
@@ -131,12 +165,43 @@ async function buscarFotosDaPasta(idPasta) {
     const dados = await resposta.json();
     const arquivos = dados.files || [];
     return arquivos.map(function (arquivo) {
-        return urlFotoDrive(arquivo.id, 1600);
+        return {
+            url: urlFotoDrive(arquivo.id, 1600),
+            download: urlDownloadDrive(arquivo.id),
+            nome: arquivo.name
+        };
     });
 }
 
-// Busca a planilha publicada e devolve a lista de sessões já tratada,
-// já com as fotos de cada sessão resolvidas (pasta do Drive ou links diretos).
+// Resolve a lista de fotos de UMA sessão (pasta do Drive ou links diretos)
+// e preenche sessao.fotos / sessao.capa. Separado de buscarSessoes() para
+// que sessões protegidas por senha só tenham as fotos buscadas depois que
+// a senha certa for digitada — antes disso, nenhum link de foto passa
+// pelo navegador.
+async function resolverFotos(sessao) {
+    if (sessao.fotos.length) return sessao.fotos; // já resolvida
+
+    const idPasta = extrairIdPastaDrive(sessao._linkFotos);
+
+    let fotos = [];
+    if (idPasta) {
+        fotos = await buscarFotosDaPasta(idPasta);
+    } else {
+        fotos = sessao._linkFotos.split(",")
+            .map(function (f) { return f.trim(); })
+            .filter(Boolean)
+            .map(function (f) { return converterLinkDrive(f); });
+    }
+
+    sessao.fotos = fotos;
+    if (!sessao.capa) sessao.capa = fotos[0] ? fotos[0].url : "";
+    return fotos;
+}
+
+// Busca a planilha publicada e devolve a lista de sessões já tratada.
+// Sessões SEM senha já vêm com as fotos resolvidas (comportamento igual a
+// antes). Sessões COM senha vêm com fotos vazias — use resolverFotos(sessao)
+// depois que a senha for confirmada para buscar as fotos de verdade.
 async function buscarSessoes() {
     if (!SHEET_CSV_URL || SHEET_CSV_URL.indexOf("COLE_AQUI") !== -1) {
         throw new Error("Link da planilha não configurado em dados.js");
@@ -152,25 +217,10 @@ async function buscarSessoes() {
 
     return Promise.all(linhas.map(async function (l) {
         const linkFotos = (l.fotos || "").trim();
-        const idPasta = extrairIdPastaDrive(linkFotos);
+        const senha = (l.senha || "").trim();
+        const protegida = !!senha;
 
-        let fotos = [];
-        if (idPasta) {
-            try {
-                fotos = await buscarFotosDaPasta(idPasta);
-            } catch (erro) {
-                console.error("Falha ao carregar a pasta do Drive da sessão \"" + l.slug + "\":", erro);
-                fotos = [];
-            }
-        } else {
-            fotos = linkFotos.split(",")
-                .map(function (f) { return converterLinkDrive(f.trim()); })
-                .filter(Boolean);
-        }
-
-        const capa = converterLinkDrive(l.capa) || fotos[0] || "";
-
-        return {
+        const sessao = {
             slug: l.slug,
             categoria: l.categoria || "",
             categoriaHref: (l.categoria || "").toLowerCase() + ".html",
@@ -178,8 +228,21 @@ async function buscarSessoes() {
             titulo: l.titulo || "",
             local: l.local || "",
             data: l.data || "",
-            capa: capa,
-            fotos: fotos
+            capa: l.capa ? converterLinkDrive(l.capa).url : "",
+            fotos: [],
+            senha: senha,
+            protegida: protegida,
+            _linkFotos: linkFotos
         };
+
+        if (!protegida) {
+            try {
+                await resolverFotos(sessao);
+            } catch (erro) {
+                console.error("Falha ao carregar as fotos da sessão \"" + sessao.slug + "\":", erro);
+            }
+        }
+
+        return sessao;
     }));
 }

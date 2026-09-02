@@ -510,13 +510,13 @@
                 if (!container) return;
 
                 const destaCategoria = sessoes.filter(function (s) {
-                    return s.categoria.toLowerCase() === categoria.toLowerCase();
+                    return s.categoria.toLowerCase() === categoria.toLowerCase() && !s.protegida;
                 });
 
                 const fotos = [];
                 const vistas = new Set();
                 destaCategoria.forEach(function (s) {
-                    [s.capa].concat(s.fotos).forEach(function (url) {
+                    [s.capa].concat(s.fotos.map(function (f) { return f.url; })).forEach(function (url) {
                         if (url && !vistas.has(url)) {
                             vistas.add(url);
                             fotos.push(url);

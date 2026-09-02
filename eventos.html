@@ -267,7 +267,7 @@
             }
 
             const desta = todas.filter(function (s) {
-                return s.categoria.toLowerCase() === "eventos";
+                return s.categoria.toLowerCase() === "eventos" && !s.protegida;
             });
 
             if (!desta.length) {

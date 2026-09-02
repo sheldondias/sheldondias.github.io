@@ -267,7 +267,7 @@
             }
 
             const desta = todas.filter(function (s) {
-                return s.categoria.toLowerCase() === "esportes";
+                return s.categoria.toLowerCase() === "esportes" && !s.protegida;
             });
 
             if (!desta.length) {

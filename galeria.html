@@ -168,6 +168,132 @@
             color: white;
         }
 
+        .senha-tela {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8%;
+        }
+
+        .senha-caixa {
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+        }
+
+        .senha-caixa .galeria-eyebrow {
+            justify-content: center;
+        }
+
+        .senha-caixa h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .senha-caixa p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .senha-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .senha-form input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            letter-spacing: 2px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .senha-form input:focus {
+            border-color: #666;
+        }
+
+        .senha-form button {
+            padding: 14px 16px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            color: #0f0f0f;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .senha-form button:hover {
+            opacity: 0.85;
+        }
+
+        .senha-erro {
+            color: #d97757;
+            font-size: 0.85rem;
+            min-height: 18px;
+        }
+
+        .foto-baixar {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(15, 15, 15, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .galeria-grid figure {
+            position: relative;
+        }
+
+        .galeria-grid figure:hover .foto-baixar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .foto-baixar:hover {
+            background: white;
+        }
+
+        .foto-baixar:hover svg {
+            stroke: #0f0f0f;
+        }
+
+        .foto-baixar svg {
+            width: 16px;
+            height: 16px;
+            stroke: white;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+
+            .foto-baixar {
+                opacity: 1;
+                transform: none;
+            }
+
+        }
+
         footer {
             text-align: center;
             padding: 40px;
@@ -226,9 +352,70 @@
 
         let sessao = null;
 
-        function renderizarSessao() {
+        // Chave usada para lembrar, só durante esta aba, que a senha desta
+        // sessão já foi digitada corretamente. Guarda o HASH, nunca a senha.
+        function chaveSenha() {
+            return "galeria_senha_" + sessao.slug;
+        }
+
+        function precisaDeSenha() {
+            return !!sessao.senha && sessionStorage.getItem(chaveSenha()) !== sessao.senha;
+        }
+
+        function renderizarTelaSenha() {
+            document.title = "Galeria protegida | Sheldon Dias Fotografia";
+
+            conteudo.innerHTML = `
+                <div class="senha-tela">
+                    <div class="senha-caixa">
+                        <div class="galeria-eyebrow">${sessao.cliente}</div>
+                        <h2>Galeria protegida</h2>
+                        <p>Digite a senha que você recebeu para ver e baixar as fotos de "${sessao.titulo}".</p>
+                        <form class="senha-form" id="form-senha">
+                            <input type="password" id="input-senha" placeholder="Senha" autocomplete="off" autofocus>
+                            <div class="senha-erro" id="erro-senha"></div>
+                            <button type="submit">Entrar</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            const form = document.getElementById("form-senha");
+            const input = document.getElementById("input-senha");
+            const erro = document.getElementById("erro-senha");
+            const botao = form.querySelector("button");
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                botao.disabled = true;
+                erro.textContent = "";
+
+                const hash = await sha256Hex(input.value);
+
+                if (hash === sessao.senha) {
+                    sessionStorage.setItem(chaveSenha(), sessao.senha);
+                    conteudo.innerHTML = '<div class="vazio">Carregando fotos...</div>';
+                    try {
+                        await resolverFotos(sessao);
+                    } catch (erroCarregar) {
+                        renderizarErro();
+                        return;
+                    }
+                    renderizarGaleria();
+                } else {
+                    erro.textContent = "Senha incorreta. Tente novamente.";
+                    input.value = "";
+                    input.focus();
+                    botao.disabled = false;
+                }
+            });
+        }
+
+        function renderizarGaleria() {
 
             document.title = sessao.titulo + " — " + sessao.cliente + " | Sheldon Dias Fotografia";
+
+            conteudo.innerHTML = "";
 
             const header = document.createElement("div");
             header.className = "galeria-header";
@@ -246,13 +433,25 @@
             const grid = document.createElement("div");
             grid.className = "galeria-grid";
 
-            sessao.fotos.forEach(function (url) {
+            sessao.fotos.forEach(function (foto, indice) {
                 const figure = document.createElement("figure");
+
                 const img = document.createElement("img");
-                img.src = url;
+                img.src = foto.url;
                 img.loading = "lazy";
                 img.alt = sessao.titulo;
                 figure.appendChild(img);
+
+                const baixar = document.createElement("a");
+                baixar.className = "foto-baixar";
+                baixar.href = foto.download;
+                baixar.download = sessao.slug + "-" + String(indice + 1).padStart(3, "0") + ".jpg";
+                baixar.target = "_blank";
+                baixar.rel = "noopener";
+                baixar.title = "Baixar esta foto";
+                baixar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
+                figure.appendChild(baixar);
+
                 grid.appendChild(figure);
             });
 
@@ -288,11 +487,26 @@
                 return;
             }
 
-            if (sessao) {
-                renderizarSessao();
-            } else {
+            if (!sessao) {
                 renderizarNaoEncontrada();
+                return;
             }
+
+            if (precisaDeSenha()) {
+                renderizarTelaSenha();
+                return;
+            }
+
+            if (!sessao.fotos.length && sessao._linkFotos) {
+                try {
+                    await resolverFotos(sessao);
+                } catch (erro) {
+                    renderizarErro();
+                    return;
+                }
+            }
+
+            renderizarGaleria();
         }
 
         iniciar();
