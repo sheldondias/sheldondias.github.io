@@ -106,15 +106,26 @@
 
         .album-imagem {
             position: relative;
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            background: #111;
         }
 
         .album-imagem img {
-            width: 98%;
-            height: 98%;
-            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             filter: grayscale(100%);
-            transition: 0.6s;
+            opacity: 0;
+            transition: opacity 1.4s ease, filter 0.6s;
         }
+
+        .album-imagem img.slide-ativa {
+            opacity: 1;
+        }
+
         .album:hover {
             transform: scale(1.02);
         }
@@ -279,8 +290,8 @@
 
             <a class="album" href="eventos.html">
 
-                <div class="album-imagem">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786129198/IMG_7778_rnlzh5.jpg" alt="">
+                <div class="album-imagem" data-categoria="Eventos">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786129198/IMG_7778_rnlzh5.jpg" alt="" class="slide-ativa">
                     <span class="album-local">Eventos</span>
                 </div>
 
@@ -288,8 +299,8 @@
 
             <a class="album" href="esportes.html">
 
-                <div class="album-imagem">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786127286/IMG_4354_nupiwe.jpg" alt="">
+                <div class="album-imagem" data-categoria="Esportes">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786127286/IMG_4354_nupiwe.jpg" alt="" class="slide-ativa">
                     <span class="album-local">Esportes</span>
                 </div>
 
@@ -297,8 +308,8 @@
 
             <a class="album" href="retratos.html">
 
-                <div class="album-imagem">
-                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786126774/IMG_3387_uqaogo.jpg" alt="">
+                <div class="album-imagem" data-categoria="Retratos">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786126774/IMG_3387_uqaogo.jpg" alt="" class="slide-ativa">
                     <span class="album-local">Retratos</span>
                 </div>
 
@@ -395,6 +406,84 @@
         © 2026 Sheldon Dias — Todos os direitos reservados.
 
     </footer>
+
+    <script src="dados.js"></script>
+    <script>
+
+        // Troca as fotos de cada card (Eventos/Esportes/Retratos) automaticamente,
+        // em looping infinito, usando as fotos de todas as sessões daquela categoria.
+        const INTERVALO_SLIDE = 3200; // tempo (ms) que cada foto fica visível
+
+        function iniciarSlideshow(container, fotos) {
+            // embaralha a ordem para variar o card a cada visita
+            for (let i = fotos.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = fotos[i];
+                fotos[i] = fotos[j];
+                fotos[j] = tmp;
+            }
+
+            const marcador = container.querySelector(".album-local");
+            const imgInicial = container.querySelector("img");
+            imgInicial.src = fotos[0];
+
+            fotos.slice(1).forEach(function (url) {
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = "";
+                img.loading = "lazy";
+                container.insertBefore(img, marcador);
+            });
+
+            if (fotos.length < 2) return;
+
+            let indice = 0;
+            const imagens = container.querySelectorAll("img");
+
+            setInterval(function () {
+                imagens[indice].classList.remove("slide-ativa");
+                indice = (indice + 1) % imagens.length;
+                imagens[indice].classList.add("slide-ativa");
+            }, INTERVALO_SLIDE);
+        }
+
+        async function iniciarCapasHome() {
+            let sessoes;
+            try {
+                sessoes = await buscarSessoes();
+            } catch (erro) {
+                console.error("Não foi possível carregar as fotos das categorias:", erro);
+                return; // mantém a foto estática original de cada card
+            }
+
+            ["Eventos", "Esportes", "Retratos"].forEach(function (categoria) {
+                const container = document.querySelector('.album-imagem[data-categoria="' + categoria + '"]');
+                if (!container) return;
+
+                const destaCategoria = sessoes.filter(function (s) {
+                    return s.categoria.toLowerCase() === categoria.toLowerCase();
+                });
+
+                const fotos = [];
+                const vistas = new Set();
+                destaCategoria.forEach(function (s) {
+                    [s.capa].concat(s.fotos).forEach(function (url) {
+                        if (url && !vistas.has(url)) {
+                            vistas.add(url);
+                            fotos.push(url);
+                        }
+                    });
+                });
+
+                if (!fotos.length) return; // mantém a foto estática original do card
+
+                iniciarSlideshow(container, fotos);
+            });
+        }
+
+        iniciarCapasHome();
+
+    </script>
 
     <script>
         document.addEventListener("contextmenu", function (e) {
