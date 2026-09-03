@@ -60,7 +60,7 @@
 */
 
 // >>> Cole aqui a URL do seu Cloudflare Worker (ver instruções em worker.js) <<<
-const SHEET_PROXY_URL = "COLE_AQUI_A_URL_DO_WORKER";
+const SHEET_PROXY_URL = "https://implantar.sheldon-dias23.workers.dev/";
 const DRIVE_API_KEY = "AIzaSyA7-Q5nHRW6g1pQOFN2p7ugx_RgoC7urBE";
 
 // Lê um texto CSV (lidando com campos entre aspas que contêm vírgulas) e
