@@ -10,6 +10,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
 
+    <!-- Biblioteca usada só nas sessões com senha, para montar o .zip com
+         todas as fotos direto no navegador antes de baixar. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
     <style>
 
         * {
@@ -448,8 +452,6 @@
 
             conteudo.innerHTML = "";
 
-            const idPastaDrive = extrairIdPastaDrive(sessao._linkFotos);
-
             const header = document.createElement("div");
             header.className = "galeria-header";
             header.innerHTML = `
@@ -461,15 +463,10 @@
                     <div><strong>Local</strong>${sessao.local}</div>
                     <div><strong>Fotos</strong>${sessao.fotos.length}</div>
                 </div>
-                ${sessao.protegida && idPastaDrive ? `
-                <a class="baixar-todas" id="btn-baixar-pasta" href="https://drive.google.com/drive/folders/${idPastaDrive}" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                    Baixar todas as fotos
-                </a>` : ""}
-                ${sessao.protegida && !idPastaDrive ? `
+                ${sessao.protegida ? `
                 <button type="button" class="baixar-todas" id="btn-baixar-todas">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                    Baixar todas as fotos
+                    Baixar todas as fotos (.zip)
                 </button>` : ""}
             `;
 
@@ -511,33 +508,70 @@
             }
         }
 
-        // Dispara o download de todas as fotos da sessão, uma de cada vez,
-        // com uma pequena pausa entre elas (baixar tudo de uma vez costuma
-        // ser bloqueado pelo navegador como "muitos downloads automáticos").
+        // Baixa todas as fotos da sessão como UM ÚNICO arquivo .zip, direto
+        // do site: busca cada foto através do Worker (que tem permissão de
+        // CORS), monta o zip no navegador e dispara um único download no
+        // final. Se alguma foto não tiver ID do Drive (ex: link direto de
+        // outro serviço), cai no método antigo (baixar uma por uma) só
+        // para essas, como reserva.
         async function baixarTodas(sessaoAtual, botao) {
             const fotos = sessaoAtual.fotos;
             if (!fotos.length) return;
 
+            const comId = fotos.filter(function (f) { return f.id; });
+            const semId = fotos.filter(function (f) { return !f.id; });
+
             botao.disabled = true;
             const textoOriginal = botao.innerHTML;
 
-            for (let i = 0; i < fotos.length; i++) {
-                botao.innerHTML = "Baixando " + (i + 1) + " de " + fotos.length + "...";
+            try {
+                if (comId.length) {
+                    const zip = new JSZip();
+                    const baseProxy = SHEET_PROXY_URL.split("?")[0].replace(/\/$/, "");
 
-                const link = document.createElement("a");
-                link.href = fotos[i].download;
-                link.download = sessaoAtual.slug + "-" + String(i + 1).padStart(3, "0") + ".jpg";
-                link.target = "_blank";
-                link.rel = "noopener";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                    for (let i = 0; i < comId.length; i++) {
+                        botao.innerHTML = "Preparando " + (i + 1) + " de " + comId.length + "...";
 
-                await new Promise(function (resolve) { setTimeout(resolve, 600); });
+                        const resposta = await fetch(baseProxy + "?id=" + comId[i].id);
+                        if (!resposta.ok) {
+                            throw new Error("Falha ao baixar a foto " + (i + 1) + " (" + resposta.status + ")");
+                        }
+                        const blob = await resposta.blob();
+                        const nomeArquivo = sessaoAtual.slug + "-" + String(i + 1).padStart(3, "0") + ".jpg";
+                        zip.file(nomeArquivo, blob);
+                    }
+
+                    botao.innerHTML = "Compactando...";
+                    const conteudoZip = await zip.generateAsync({ type: "blob" });
+
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(conteudoZip);
+                    link.download = sessaoAtual.slug + "-fotos.zip";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }
+
+                // Reserva: fotos sem ID do Drive (links diretos de outro
+                // serviço) não passam pelo Worker — baixa cada uma direto.
+                for (let i = 0; i < semId.length; i++) {
+                    const link = document.createElement("a");
+                    link.href = semId[i].download;
+                    link.download = sessaoAtual.slug + "-extra-" + String(i + 1).padStart(3, "0") + ".jpg";
+                    link.target = "_blank";
+                    link.rel = "noopener";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    await new Promise(function (resolve) { setTimeout(resolve, 600); });
+                }
+            } catch (erro) {
+                alert("Não foi possível preparar o arquivo para download: " + erro.message);
+            } finally {
+                botao.innerHTML = textoOriginal;
+                botao.disabled = false;
             }
-
-            botao.innerHTML = textoOriginal;
-            botao.disabled = false;
         }
 
         function renderizarNaoEncontrada() {

@@ -143,21 +143,22 @@ function urlDownloadDrive(idArquivo) {
     return "https://drive.google.com/uc?export=download&id=" + idArquivo;
 }
 
-// Se o link for de um ARQUIVO individual do Drive, devolve {url, download}
+// Se o link for de um ARQUIVO individual do Drive, devolve {url, download, id}
 // prontos para exibir/baixar. Se já for um link direto normal (Cloudinary,
-// etc.), usa o próprio link para as duas coisas.
+// etc.), usa o próprio link para as duas coisas e id fica null.
 function converterLinkDrive(link) {
-    if (!link) return { url: link, download: link };
+    if (!link) return { url: link, download: link, id: null };
     let m = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if (!m) m = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if (m) {
-        return { url: urlFotoDrive(m[1], 1600), download: urlDownloadDrive(m[1]) };
+        return { url: urlFotoDrive(m[1], 1600), download: urlDownloadDrive(m[1]), id: m[1] };
     }
-    return { url: link, download: link };
+    return { url: link, download: link, id: null };
 }
 
 // Lista todas as imagens dentro de uma pasta pública do Drive, já com o
-// link de exibição e o link de download de cada uma.
+// link de exibição, o link de download e o ID de cada uma (o ID é usado
+// pelo Worker para buscar o arquivo na hora de montar o zip).
 async function buscarFotosDaPasta(idPasta) {
     const consulta = "'" + idPasta + "' in parents and mimeType contains 'image/' and trashed = false";
     const url = "https://www.googleapis.com/drive/v3/files"
@@ -178,6 +179,7 @@ async function buscarFotosDaPasta(idPasta) {
         return {
             url: urlFotoDrive(arquivo.id, 1600),
             download: urlDownloadDrive(arquivo.id),
+            id: arquivo.id,
             nome: arquivo.name
         };
     });
