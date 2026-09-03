@@ -448,6 +448,8 @@
 
             conteudo.innerHTML = "";
 
+            const idPastaDrive = extrairIdPastaDrive(sessao._linkFotos);
+
             const header = document.createElement("div");
             header.className = "galeria-header";
             header.innerHTML = `
@@ -459,7 +461,12 @@
                     <div><strong>Local</strong>${sessao.local}</div>
                     <div><strong>Fotos</strong>${sessao.fotos.length}</div>
                 </div>
-                ${sessao.protegida ? `
+                ${sessao.protegida && idPastaDrive ? `
+                <a class="baixar-todas" id="btn-baixar-pasta" href="https://drive.google.com/drive/folders/${idPastaDrive}" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                    Baixar todas as fotos
+                </a>` : ""}
+                ${sessao.protegida && !idPastaDrive ? `
                 <button type="button" class="baixar-todas" id="btn-baixar-todas">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
                     Baixar todas as fotos
