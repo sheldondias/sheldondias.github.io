@@ -294,6 +294,37 @@
 
         }
 
+        .baixar-todas {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            color: #0f0f0f;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .baixar-todas:hover {
+            opacity: 0.85;
+        }
+
+        .baixar-todas:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .baixar-todas svg {
+            width: 16px;
+            height: 16px;
+        }
+
         footer {
             text-align: center;
             padding: 40px;
@@ -428,6 +459,11 @@
                     <div><strong>Local</strong>${sessao.local}</div>
                     <div><strong>Fotos</strong>${sessao.fotos.length}</div>
                 </div>
+                ${sessao.protegida ? `
+                <button type="button" class="baixar-todas" id="btn-baixar-todas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                    Baixar todas as fotos
+                </button>` : ""}
             `;
 
             const grid = document.createElement("div");
@@ -459,6 +495,41 @@
 
             conteudo.appendChild(header);
             conteudo.appendChild(grid);
+
+            const btnBaixarTodas = document.getElementById("btn-baixar-todas");
+            if (btnBaixarTodas) {
+                btnBaixarTodas.addEventListener("click", function () {
+                    baixarTodas(sessao, btnBaixarTodas);
+                });
+            }
+        }
+
+        // Dispara o download de todas as fotos da sessão, uma de cada vez,
+        // com uma pequena pausa entre elas (baixar tudo de uma vez costuma
+        // ser bloqueado pelo navegador como "muitos downloads automáticos").
+        async function baixarTodas(sessaoAtual, botao) {
+            const fotos = sessaoAtual.fotos;
+            if (!fotos.length) return;
+
+            botao.disabled = true;
+            const textoOriginal = botao.innerHTML;
+
+            for (let i = 0; i < fotos.length; i++) {
+                botao.innerHTML = "Baixando " + (i + 1) + " de " + fotos.length + "...";
+
+                const link = document.createElement("a");
+                link.href = fotos[i].download;
+                link.download = sessaoAtual.slug + "-" + String(i + 1).padStart(3, "0") + ".jpg";
+                link.rel = "noopener";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                await new Promise(function (resolve) { setTimeout(resolve, 600); });
+            }
+
+            botao.innerHTML = textoOriginal;
+            botao.disabled = false;
         }
 
         function renderizarNaoEncontrada() {
