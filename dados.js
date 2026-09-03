@@ -39,7 +39,16 @@
 
     2. No Google Sheets: Arquivo > Compartilhar > Publicar na web > selecione a
        aba > formato "Valores separados por vírgula (.csv)" > Publicar.
-       Copie o link gerado (termina em "output=csv") e cole abaixo em SHEET_CSV_URL.
+       Copie o link gerado (termina em "output=csv").
+
+    IMPORTANTE — SOBRE O LINK DA PLANILHA:
+    O link real da planilha NÃO fica mais aqui neste arquivo. Ele fica
+    guardado só dentro do Cloudflare Worker (veja worker.js), que é
+    quem de fato busca o CSV. Este arquivo só chama o Worker através
+    da constante SHEET_PROXY_URL logo abaixo — assim, quem inspecionar
+    o código do site não descobre o link da planilha.
+    Siga as instruções no topo de worker.js para publicar o Worker,
+    depois cole a URL dele em SHEET_PROXY_URL.
 
     COMO CONFIGURAR A CHAVE DO GOOGLE DRIVE (necessária para ler as pastas):
     1. Acesse console.cloud.google.com, crie um projeto (ou use um existente).
@@ -50,7 +59,8 @@
        e só a partir do domínio do seu site, em "Restrições de aplicativo".
 */
 
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1gDgdl50T0VC5pQKH-6e8MHRJk5gs7CJ3HchopIP5Hx4/export?format=csv&gid=316155775";
+// >>> Cole aqui a URL do seu Cloudflare Worker (ver instruções em worker.js) <<<
+const SHEET_PROXY_URL = "COLE_AQUI_A_URL_DO_WORKER";
 const DRIVE_API_KEY = "AIzaSyA7-Q5nHRW6g1pQOFN2p7ugx_RgoC7urBE";
 
 // Lê um texto CSV (lidando com campos entre aspas que contêm vírgulas) e
@@ -203,11 +213,11 @@ async function resolverFotos(sessao) {
 // antes). Sessões COM senha vêm com fotos vazias — use resolverFotos(sessao)
 // depois que a senha for confirmada para buscar as fotos de verdade.
 async function buscarSessoes() {
-    if (!SHEET_CSV_URL || SHEET_CSV_URL.indexOf("COLE_AQUI") !== -1) {
-        throw new Error("Link da planilha não configurado em dados.js");
+    if (!SHEET_PROXY_URL || SHEET_PROXY_URL.indexOf("COLE_AQUI") !== -1) {
+        throw new Error("URL do Worker não configurada em dados.js");
     }
 
-    const resposta = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+    const resposta = await fetch(SHEET_PROXY_URL, { cache: "no-store" });
     if (!resposta.ok) {
         throw new Error("Não foi possível carregar a planilha (" + resposta.status + ")");
     }
