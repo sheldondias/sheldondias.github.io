@@ -112,7 +112,9 @@ function analisarCsv(texto) {
     });
 }
 
-
+// Calcula o hash SHA-256 (em hexadecimal) de um texto. Usado para comparar
+// a senha digitada pelo cliente com o hash guardado na planilha, sem nunca
+// manusear a senha em texto puro.
 async function sha256Hex(texto) {
     const bytes = new TextEncoder().encode(texto);
     const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
@@ -121,7 +123,8 @@ async function sha256Hex(texto) {
         .join("");
 }
 
-
+// Extrai o ID de uma pasta a partir de um link de pasta do Google Drive.
+// Aceita formatos como /drive/folders/ID, /drive/u/0/folders/ID ou ?id=ID.
 function extrairIdPastaDrive(link) {
     if (!link) return null;
     let m = link.match(/\/folders\/([a-zA-Z0-9_-]+)/);
@@ -129,16 +132,20 @@ function extrairIdPastaDrive(link) {
     return m ? m[1] : null;
 }
 
-
+// Monta a URL de imagem exibível a partir do ID de um arquivo do Drive.
 function urlFotoDrive(idArquivo, largura) {
     return "https://drive.google.com/thumbnail?id=" + idArquivo + "&sz=w" + (largura || 1600);
 }
 
-
+// Monta a URL de DOWNLOAD (arquivo original, não a miniatura) a partir do
+// ID de um arquivo do Drive.
 function urlDownloadDrive(idArquivo) {
     return "https://drive.google.com/uc?export=download&id=" + idArquivo;
 }
 
+// Se o link for de um ARQUIVO individual do Drive, devolve {url, download}
+// prontos para exibir/baixar. Se já for um link direto normal (Cloudinary,
+// etc.), usa o próprio link para as duas coisas.
 function converterLinkDrive(link) {
     if (!link) return { url: link, download: link };
     let m = link.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -149,7 +156,8 @@ function converterLinkDrive(link) {
     return { url: link, download: link };
 }
 
-
+// Lista todas as imagens dentro de uma pasta pública do Drive, já com o
+// link de exibição e o link de download de cada uma.
 async function buscarFotosDaPasta(idPasta) {
     const consulta = "'" + idPasta + "' in parents and mimeType contains 'image/' and trashed = false";
     const url = "https://www.googleapis.com/drive/v3/files"
@@ -175,7 +183,11 @@ async function buscarFotosDaPasta(idPasta) {
     });
 }
 
-
+// Resolve a lista de fotos de UMA sessão (pasta do Drive ou links diretos)
+// e preenche sessao.fotos / sessao.capa. Separado de buscarSessoes() para
+// que sessões protegidas por senha só tenham as fotos buscadas depois que
+// a senha certa for digitada — antes disso, nenhum link de foto passa
+// pelo navegador.
 async function resolverFotos(sessao) {
     if (sessao.fotos.length) return sessao.fotos; // já resolvida
 
@@ -196,10 +208,12 @@ async function resolverFotos(sessao) {
     return fotos;
 }
 
-
-
+// Busca a planilha publicada e devolve a lista de sessões já tratada.
+// Sessões SEM senha já vêm com as fotos resolvidas (comportamento igual a
+// antes). Sessões COM senha vêm com fotos vazias — use resolverFotos(sessao)
+// depois que a senha for confirmada para buscar as fotos de verdade.
 async function buscarSessoes() {
-    if (!SHEET_PROXY_URL || SHEET_PROXY_URL.indexOf("https://implantar.sheldon-dias23.workers.dev/") !== -1) {
+    if (!SHEET_PROXY_URL || SHEET_PROXY_URL.indexOf("workers.dev") === -1) {
         throw new Error("URL do Worker não configurada em dados.js");
     }
 
