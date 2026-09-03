@@ -520,6 +520,7 @@
                 const link = document.createElement("a");
                 link.href = fotos[i].download;
                 link.download = sessaoAtual.slug + "-" + String(i + 1).padStart(3, "0") + ".jpg";
+                link.target = "_blank";
                 link.rel = "noopener";
                 document.body.appendChild(link);
                 link.click();
