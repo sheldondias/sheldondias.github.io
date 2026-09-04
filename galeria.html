@@ -124,19 +124,27 @@
 
         .galeria-grid {
             padding: 60px 10% 120px;
-            column-count: 3;
-            column-gap: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        .galeria-coluna {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
         }
 
         .galeria-grid figure {
             overflow: hidden;
             border-radius: 12px;
-            break-inside: avoid;
-            margin-bottom: 18px;
+            margin: 0;
         }
 
         .galeria-grid img {
-            width: 102%;
+            width: 100%;
             height: auto;
             display: block;
             transition: 0.5s;
@@ -144,22 +152,6 @@
 
         .galeria-grid figure:hover img {
             transform: scale(1.03);
-        }
-
-        @media (max-width: 1100px) {
-
-            .galeria-grid {
-                column-count: 2;
-            }
-
-        }
-
-        @media (max-width: 600px) {
-
-            .galeria-grid {
-                column-count: 1;
-            }
-
         }
 
         .vazio {
@@ -446,6 +438,106 @@
             });
         }
 
+        // Guardam a grade e a quantidade de colunas em uso, para poder
+        // remontar a distribuição das fotos se a janela mudar de faixa
+        // (3 colunas em telas largas, 2 em médias, 1 em telas pequenas).
+        let gridAtual = null;
+        let colunasAtuais = 0;
+
+        function numColunasResponsivas() {
+            const largura = window.innerWidth;
+            if (largura <= 600) return 1;
+            if (largura <= 1100) return 2;
+            return 3;
+        }
+
+        // Descobre a proporção altura/largura real de uma foto (carregando-a
+        // uma vez em memória) para estimar sua altura na coluna. Se a foto
+        // falhar ao carregar, usa uma proporção padrão (paisagem 4:3).
+        function estimarProporcao(url) {
+            return new Promise(function (resolve) {
+                const img = new Image();
+                img.onload = function () {
+                    if (img.naturalWidth && img.naturalHeight) {
+                        resolve(img.naturalHeight / img.naturalWidth);
+                    } else {
+                        resolve(0.75);
+                    }
+                };
+                img.onerror = function () { resolve(0.75); };
+                img.src = url;
+            });
+        }
+
+        // Monta a grade como um masonry de verdade: em vez de deixar o CSS
+        // distribuir as fotos em colunas (o que cria "buracos" quando uma
+        // foto grande não cabe e é empurrada inteira para a coluna
+        // seguinte), cada foto é colocada, uma a uma, na coluna que estiver
+        // mais curta no momento — assim as colunas terminam sempre
+        // equilibradas, sem espaço vazio sobrando no meio.
+        async function montarGradeFotos(sessao, grid) {
+            const numColunas = numColunasResponsivas();
+            colunasAtuais = numColunas;
+
+            grid.innerHTML = "";
+            const colunas = [];
+            const alturas = new Array(numColunas).fill(0);
+            for (let i = 0; i < numColunas; i++) {
+                const coluna = document.createElement("div");
+                coluna.className = "galeria-coluna";
+                grid.appendChild(coluna);
+                colunas.push(coluna);
+            }
+
+            const proporcoes = await Promise.all(
+                sessao.fotos.map(function (foto) { return estimarProporcao(foto.url); })
+            );
+
+            // Se a janela mudou de faixa enquanto as proporções carregavam,
+            // não monta com números desatualizados — deixa o resize seguinte
+            // (ou a chamada já em andamento) cuidar disso.
+            if (grid !== gridAtual || numColunas !== colunasAtuais) return;
+
+            sessao.fotos.forEach(function (foto, indice) {
+                const figure = document.createElement("figure");
+
+                const img = document.createElement("img");
+                img.src = foto.url;
+                img.loading = "lazy";
+                img.alt = sessao.titulo;
+                figure.appendChild(img);
+
+                if (sessao.protegida) {
+                    const baixar = document.createElement("a");
+                    baixar.className = "foto-baixar";
+                    baixar.href = foto.download;
+                    baixar.download = sessao.slug + "-" + String(indice + 1).padStart(3, "0") + ".jpg";
+                    baixar.target = "_blank";
+                    baixar.rel = "noopener";
+                    baixar.title = "Baixar esta foto";
+                    baixar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
+                    figure.appendChild(baixar);
+                }
+
+                let colunaMenor = 0;
+                for (let i = 1; i < numColunas; i++) {
+                    if (alturas[i] < alturas[colunaMenor]) colunaMenor = i;
+                }
+                colunas[colunaMenor].appendChild(figure);
+                alturas[colunaMenor] += proporcoes[indice] || 0.75;
+            });
+        }
+
+        let redimensionarTimeout = null;
+        window.addEventListener("resize", function () {
+            clearTimeout(redimensionarTimeout);
+            redimensionarTimeout = setTimeout(function () {
+                if (gridAtual && sessao && sessao.fotos.length && numColunasResponsivas() !== colunasAtuais) {
+                    montarGradeFotos(sessao, gridAtual);
+                }
+            }, 200);
+        });
+
         function renderizarGaleria() {
 
             document.title = sessao.titulo + " — " + sessao.cliente + " | Sheldon Dias Fotografia";
@@ -473,32 +565,11 @@
             const grid = document.createElement("div");
             grid.className = "galeria-grid";
 
-            sessao.fotos.forEach(function (foto, indice) {
-                const figure = document.createElement("figure");
-
-                const img = document.createElement("img");
-                img.src = foto.url;
-                img.loading = "lazy";
-                img.alt = sessao.titulo;
-                figure.appendChild(img);
-
-                const baixar = document.createElement("a");
-                baixar.className = "foto-baixar";
-                baixar.href = foto.download;
-                baixar.download = sessao.slug + "-" + String(indice + 1).padStart(3, "0") + ".jpg";
-                baixar.target = "_blank";
-                baixar.rel = "noopener";
-                baixar.title = "Baixar esta foto";
-                baixar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
-                if (sessao.protegida) {
-                    figure.appendChild(baixar);
-                }
-
-                grid.appendChild(figure);
-            });
-
             conteudo.appendChild(header);
             conteudo.appendChild(grid);
+
+            gridAtual = grid;
+            montarGradeFotos(sessao, grid);
 
             const btnBaixarTodas = document.getElementById("btn-baixar-todas");
             if (btnBaixarTodas) {
