@@ -16,6 +16,16 @@
 
     <style>
 
+        @font-face {
+            font-family: "Aesthetic";
+            src: url("fonts/Aesthetic-Regular.woff2") format("woff2"),
+                 url("fonts/Aesthetic-Regular.woff") format("woff"),
+                 url("fonts/Aesthetic-Regular.otf") format("opentype");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -101,7 +111,10 @@
         }
 
         .galeria-header h2 {
-            font-size: 3rem;
+            font-family: "Aesthetic", "Playfair Display", serif;
+            font-weight: 400;
+            font-size: 3.6rem;
+            text-transform: uppercase;
             margin-bottom: 20px;
         }
 
