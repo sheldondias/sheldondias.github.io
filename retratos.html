@@ -159,6 +159,10 @@
             text-decoration: none;
         }
 
+        .sessao picture {
+            display: block;
+        }
+
         .sessao img {
             width: 100%;
             height: 460px;
@@ -295,7 +299,11 @@
             container.innerHTML = desta.map(function (s) {
                 return `
                     <a class="sessao" href="galeria.html?sessao=${encodeURIComponent(s.slug)}">
-                        <img src="${s.capa}" alt="">
+                        <picture>
+                            <source media="(max-width: 600px)" srcset="${s.capaCelular || s.capa}">
+                            <source media="(max-width: 1024px)" srcset="${s.capaTablet || s.capa}">
+                            <img src="${s.capa}" alt="">
+                        </picture>
                         <div class="sessao-info">
                             <h3>${s.titulo}</h3>
                             <div class="sessao-meta">
