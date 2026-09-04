@@ -443,12 +443,18 @@
         // Ajusta a altura de cada capa de sessão para acompanhar a proporção
         // real da foto (mesma lógica usada nos cards de categoria da home),
         // em vez de usar uma altura fixa igual para todas.
+        // Limite de proporção: evita que uma foto muito vertical (fora do
+        // padrão) deixe o card gigante. Fotos com proporção normal (a
+        // maioria) continuam exatamente do tamanho real, sem cortar nada.
+        const PROPORCAO_MAXIMA_CAPA = 1.25; // altura no máximo 1.25x a largura
+
         function ajustarAlturaCapa(wrap, img) {
             if (!img.naturalWidth || !img.naturalHeight) return;
             const largura = wrap.getBoundingClientRect().width;
             if (!largura) return;
-            const altura = (largura * 0.98) * (img.naturalHeight / img.naturalWidth);
-            wrap.style.height = altura + "px";
+            const alturaReal = (largura * 0.98) * (img.naturalHeight / img.naturalWidth);
+            const alturaMaxima = largura * PROPORCAO_MAXIMA_CAPA;
+            wrap.style.height = Math.min(alturaReal, alturaMaxima) + "px";
         }
 
         function ajustarAlturasCapas() {
