@@ -182,14 +182,15 @@
         .sessao .capa-wrap {
             position: relative;
             width: 100%;
+            height: 20vh;
             overflow: hidden;
-            transition: height 1s ease-in-out;
+            background: #0a0a0a;
         }
 
         .sessao img {
-            width: 98%;
-            height: 98%;
-            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             display: block;
             transform: scale(1.04);
             filter: brightness(0.86) saturate(1.05);
@@ -437,43 +438,7 @@
                 `;
             }).join("");
 
-            ajustarAlturasCapas();
         }
-
-        // Ajusta a altura de cada capa de sessão para acompanhar a proporção
-        // real da foto (mesma lógica usada nos cards de categoria da home),
-        // em vez de usar uma altura fixa igual para todas.
-        // Limite de proporção: evita que uma foto muito vertical (fora do
-        // padrão) deixe o card gigante. Fotos com proporção normal (a
-        // maioria) continuam exatamente do tamanho real, sem cortar nada.
-        const PROPORCAO_MAXIMA_CAPA = 1.25; // altura no máximo 1.25x a largura
-
-        function ajustarAlturaCapa(wrap, img) {
-            if (!img.naturalWidth || !img.naturalHeight) return;
-            const largura = wrap.getBoundingClientRect().width;
-            if (!largura) return;
-            const alturaReal = (largura * 0.98) * (img.naturalHeight / img.naturalWidth);
-            const alturaMaxima = largura * PROPORCAO_MAXIMA_CAPA;
-            wrap.style.height = Math.min(alturaReal, alturaMaxima) + "px";
-        }
-
-        function ajustarAlturasCapas() {
-            document.querySelectorAll(".sessao .capa-wrap").forEach(function (wrap) {
-                const img = wrap.querySelector("img");
-                if (!img) return;
-                function aplicar() {
-                    ajustarAlturaCapa(wrap, img);
-                }
-                if (img.complete) aplicar();
-                else img.addEventListener("load", aplicar);
-            });
-        }
-
-        let timeoutResizeSessoes;
-        window.addEventListener("resize", function () {
-            clearTimeout(timeoutResizeSessoes);
-            timeoutResizeSessoes = setTimeout(ajustarAlturasCapas, 150);
-        });
 
         carregarSessoes();
 
