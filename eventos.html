@@ -183,7 +183,16 @@
             position: relative;
             width: 100%;
             overflow: hidden;
+            max-height: 500px;
             transition: height 1s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+
+            .sessao .capa-wrap {
+                max-height: 60vh;
+            }
+
         }
 
         .sessao img {
