@@ -7,7 +7,7 @@
 
     COMO CONFIGURAR A PLANILHA:
     1. Crie uma planilha no Google Sheets com esta linha de cabeçalho na primeira linha:
-       slug | categoria | cliente | titulo | local | data | capa | capa_tablet | capa_celular | fotos | senha
+       slug | categoria | cliente | titulo | local | data | capa | fotos | senha
 
        - slug:      identificador único, sem espaço/acento (ex: corrida-noturna-joao)
        - categoria: exatamente "Esportes", "Eventos" ou "Retratos"
@@ -15,15 +15,9 @@
        - titulo:    título da sessão (ex: Corrida Noturna do Parque)
        - local:     ex: Cuiabá, MT
        - data:      ex: Setembro 2026
-       - capa:      link da foto de capa no formato COMPUTADOR (paisagem/larga)
-                     (pode ser link de arquivo do Drive). Se deixar em branco,
-                     usa a primeira foto da pasta automaticamente.
-       - capa_tablet: link da capa no formato TABLET (opcional). Se deixar em
-                     branco, o site usa a capa de "capa" mesmo em telas de
-                     tablet.
-       - capa_celular: link da capa no formato CELULAR (opcional). Se deixar
-                     em branco, o site usa a capa de "capa_tablet" (ou de
-                     "capa", se essa também estiver vazia).
+       - capa:      link de UMA foto (pode ser link de arquivo do Drive) usada
+                     como capa do card. Se deixar em branco, usa a primeira
+                     foto da pasta automaticamente.
        - fotos:     o link de uma PASTA do Google Drive com as fotos da sessão
                      (ex: https://drive.google.com/drive/folders/XXXXXXXX).
                      A pasta precisa estar compartilhada como
@@ -213,8 +207,6 @@ async function resolverFotos(sessao) {
 
     sessao.fotos = fotos;
     if (!sessao.capa) sessao.capa = fotos[0] ? fotos[0].url : "";
-    if (!sessao.capaTablet) sessao.capaTablet = sessao.capa;
-    if (!sessao.capaCelular) sessao.capaCelular = sessao.capaTablet;
     return fotos;
 }
 
@@ -249,14 +241,11 @@ async function buscarSessoes() {
             local: l.local || "",
             data: l.data || "",
             capa: l.capa ? converterLinkDrive(l.capa).url : "",
-            capaTablet: l.capa_tablet ? converterLinkDrive(l.capa_tablet).url : (l.capa ? converterLinkDrive(l.capa).url : ""),
-            capaCelular: "",
             fotos: [],
             senha: senha,
             protegida: protegida,
             _linkFotos: linkFotos
         };
-        sessao.capaCelular = l.capa_celular ? converterLinkDrive(l.capa_celular).url : sessao.capaTablet;
 
         if (!protegida) {
             try {
