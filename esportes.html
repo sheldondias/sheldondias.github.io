@@ -3,395 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#070707">
     <title>Esportes | Sheldon Dias Fotografia</title>
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@300;500;700;800&display=swap" rel="stylesheet">
-
-    <style>
-
-        @font-face {
-            font-family: "Aesthetic";
-            src: url("fonts/Aesthetic-Regular.woff2") format("woff2"),
-                 url("fonts/Aesthetic-Regular.otf") format("opentype");
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: "Akira Expanded";
-            src: url("fonts/AkiraExpanded-SuperBold.woff2") format("woff2"),
-                 url("fonts/AkiraExpanded-SuperBold.otf") format("opentype");
-            font-weight: 800;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Montserrat", sans-serif;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: #0f0f0f;
-            color: white;
-        }
-
-        img {
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 25px 10%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(15px);
-            background: rgba(15, 15, 15, 0.75);
-            z-index: 1000;
-        }
-
-        nav h1 {
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-        }
-
-        nav h1 a {
-            color: white;
-            text-decoration: none;
-        }
-
-        nav ul {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        nav a:hover {
-            opacity: 0.7;
-        }
-
-        nav a.ativo {
-            opacity: 1;
-            border-bottom: 1px solid white;
-            padding-bottom: 4px;
-        }
-
-        .hero-categoria {
-            height: 60vh;
-            background:
-                linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.75)),
-                url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1600")
-                center/cover;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .hero-categoria span {
-            color: #888;
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 18px;
-        }
-
-        .hero-categoria h2 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-        }
-
-        .hero-categoria p {
-            font-size: 1.1rem;
-            color: #d0d0d0;
-            max-width: 600px;
-        }
-
-        section {
-            padding: 100px 10%;
-        }
-
-        section > h2 {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-
-        .sessoes {
-            width: 100%;
-            max-width: 760px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 54px;
-        }
-
-        .sessoes-status {
-            text-align: center;
-            color: #888;
-            padding: 40px 0;
-        }
-
-        .sessao {
-            --card-radius: 21px;
-            position: relative;
-            display: block;
-            width: 100%;
-            aspect-ratio: 8 / 5;
-            overflow: hidden;
-            border-radius: var(--card-radius);
-            cursor: pointer;
-            color: white;
-            text-decoration: none;
-            background: #111;
-            box-shadow: 0 24px 58px -28px rgba(0, 0, 0, 0.95);
-            opacity: 0;
-            transform: translateY(24px);
-            animation: sessao-entra 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: calc(var(--i, 0) * 90ms);
-            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                        box-shadow 0.55s ease;
-            container-type: inline-size;
-            isolation: isolate;
-        }
-
-        @keyframes sessao-entra {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .sessao:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 34px 74px -28px rgba(0, 0, 0, 1);
-        }
-
-        .sessao .capa-wrap {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            background: #0a0a0a;
-        }
-
-        .sessao img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transform: scale(1.035);
-            filter: blur(1.7px) brightness(0.78) saturate(0.82) contrast(0.95);
-            transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
-                        filter 0.7s ease;
-        }
-
-        .sessao:hover img {
-            transform: scale(1.075);
-            filter: blur(0.8px) brightness(0.68) saturate(0.92) contrast(0.98);
-        }
-
-        .sessao::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            background:
-                linear-gradient(to bottom,
-                    rgba(0, 0, 0, 0.12) 0%,
-                    rgba(0, 0, 0, 0.04) 42%,
-                    rgba(0, 0, 0, 0.22) 76%,
-                    rgba(0, 0, 0, 0.48) 100%),
-                linear-gradient(to right,
-                    rgba(255, 255, 255, 0.04),
-                    rgba(255, 255, 255, 0));
-        }
-
-        .sessao-info {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: stretch;
-            padding: 8% 7% 6.4%;
-        }
-
-        .sessao-info h3 {
-            margin: 0 auto;
-            width: 100%;
-            max-width: 100%;
-            font-family: "Cormorant Garamond", "Times New Roman", serif;
-            font-weight: 300;
-            font-size: clamp(2.35rem, 10vw, 7rem);
-            font-size: clamp(2.35rem, 13cqw, 7rem);
-            line-height: 0.76;
-            letter-spacing: -0.055em;
-            text-transform: uppercase;
-            text-align: center;
-            text-wrap: balance;
-            overflow-wrap: normal;
-            text-shadow: 0 3px 22px rgba(0, 0, 0, 0.28);
-            transform: translateY(-1.5%);
-            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .sessao:hover .sessao-info h3 {
-            transform: translateY(-4%);
-        }
-
-        .sessao.titulo-longo .sessao-info h3 {
-            font-size: clamp(2rem, 8.5vw, 5.8rem);
-            font-size: clamp(2rem, 10.8cqw, 5.8rem);
-            line-height: 0.8;
-        }
-
-        .sessao.titulo-muito-longo .sessao-info h3 {
-            font-size: clamp(1.72rem, 7.2vw, 4.8rem);
-            font-size: clamp(1.72rem, 8.9cqw, 4.8rem);
-            line-height: 0.84;
-        }
-
-        .sessao-meta {
-            position: absolute;
-            left: 7%;
-            right: 7%;
-            bottom: 6.2%;
-            display: grid;
-            grid-template-columns: auto minmax(28px, 1fr) auto;
-            align-items: center;
-            gap: clamp(8px, 1.4vw, 13px);
-            min-width: 0;
-            font-family: "Montserrat", sans-serif;
-            font-weight: 800;
-            font-size: clamp(0.58rem, 1.6cqw, 0.78rem);
-            line-height: 1;
-            letter-spacing: 0.015em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.98);
-            text-shadow: 0 2px 9px rgba(0, 0, 0, 0.35);
-        }
-
-        .sessao-meta span:not(.linha) {
-            white-space: nowrap;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sessao-meta .linha {
-            width: 100%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.92);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px;
-            border-top: 1px solid #222;
-            color: #888;
-        }
-
-        footer a {
-            color: #888;
-        }
-
-        @media (max-width: 768px) {
-
-            nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .hero-categoria h2 {
-                font-size: 2.3rem;
-            }
-
-            section {
-                padding: 72px 6%;
-            }
-
-            .sessoes {
-                gap: 34px;
-            }
-
-            .sessao {
-                --card-radius: 16px;
-                aspect-ratio: 1.54 / 1;
-            }
-
-            .sessao-info {
-                padding: 8% 6.5% 7%;
-            }
-
-            .sessao-meta {
-                left: 6.5%;
-                right: 6.5%;
-                bottom: 7%;
-                gap: 8px;
-            }
-
-            .sessao-meta .linha {
-                height: 1.5px;
-            }
-
-        }
-
-    </style>
+    <link rel="stylesheet" href="categoria.css">
 </head>
-
 <body>
-
-    <nav>
+    <nav aria-label="Navegação principal">
         <h1><a href="index.html">SHELDON DIAS</a></h1>
-
         <ul>
-            <li><a href="esportes.html" class="ativo">Esportes</a></li>
+            <li><a href="esportes.html" class="ativo" aria-current="page">Esportes</a></li>
             <li><a href="eventos.html">Eventos</a></li>
             <li><a href="retratos.html">Retratos</a></li>
         </ul>
     </nav>
 
-    <div class="hero-categoria">
-        <span>Trabalhos</span>
-        <h2>Esportes</h2>
-        <p>Ritmo, esforço e a linha de chegada. Cada prova reunida em uma sessão — clique para ver todas as fotos do seu pelotão.</p>
-    </div>
-
-    <section id="sessoes">
-
-        <h2>Sessões</h2>
-
-        <div class="sessoes" id="grid-sessoes">
-            <p class="sessoes-status">Carregando sessões...</p>
+    <header class="hero-categoria" style="--hero-image: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1800');">
+        <div class="hero-grain" aria-hidden="true"></div>
+        <div class="hero-inner">
+            <span class="hero-kicker">Portfólio / Trabalhos</span>
+            <h2>Esportes</h2>
+            <p>Ritmo, esforço e a linha de chegada. Cada prova reunida em uma sessão — clique para ver todas as fotos do seu pelotão.</p>
         </div>
+    </header>
 
-    </section>
+    <main>
+        <section class="portfolio-section" id="sessoes">
+            <div class="section-head">
+                <div>
+                    <span class="section-eyebrow">Arquivo selecionado</span>
+                    <h2>Últimos trabalhos</h2>
+                </div>
+                <div class="session-count" id="session-count">Carregando</div>
+            </div>
+
+            <div class="sessoes" id="grid-sessoes">
+                <p class="sessoes-status">Carregando sessões...</p>
+            </div>
+        </section>
+    </main>
 
     <footer>
         © 2026 Sheldon Dias — Todos os direitos reservados. · <a href="index.html">Voltar ao início</a>
@@ -399,14 +49,24 @@
 
     <script src="dados.js"></script>
     <script>
+        function escaparHtml(valor) {
+            return String(valor || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
         async function carregarSessoes() {
             const container = document.getElementById("grid-sessoes");
+            const contador = document.getElementById("session-count");
 
             let todas;
             try {
                 todas = await buscarSessoes();
             } catch (erro) {
+                contador.textContent = "Indisponível";
                 container.innerHTML = '<p class="sessoes-status">Não foi possível carregar as sessões. Verifique o link da planilha em dados.js.</p>';
                 return;
             }
@@ -415,48 +75,67 @@
                 return s.categoria.toLowerCase() === "esportes" && !s.protegida;
             });
 
+            contador.textContent = desta.length + (desta.length === 1 ? " sessão" : " sessões");
+
             if (!desta.length) {
                 container.innerHTML = '<p class="sessoes-status">Nenhuma sessão de Esportes cadastrada ainda.</p>';
                 return;
             }
 
             container.innerHTML = desta.map(function (s, i) {
-                const tamanhoTitulo = (s.titulo || "").length;
+                const titulo = s.titulo || "Sessão";
+                const tamanhoTitulo = titulo.length;
                 const classeTitulo = tamanhoTitulo > 34
                     ? " titulo-muito-longo"
                     : (tamanhoTitulo > 22 ? " titulo-longo" : "");
 
+                const indice = String(i + 1).padStart(2, "0");
+                const cliente = s.cliente || "Galeria";
+                const data = s.data || "";
+                const local = s.local || "";
+
                 return `
-                    <a class="sessao${classeTitulo}" style="--i:${i}" href="galeria.html?sessao=${encodeURIComponent(s.slug)}">
+                    <a class="sessao${classeTitulo}" style="--i:${i}" href="galeria.html?sessao=${encodeURIComponent(s.slug)}" aria-label="Abrir sessão ${escaparHtml(titulo)}">
                         <div class="capa-wrap">
-                            <img src="${s.capa}" alt="Capa da sessão ${s.titulo}" loading="lazy">
+                            <img src="${s.capa}" alt="Capa da sessão ${escaparHtml(titulo)}" loading="lazy">
                         </div>
+                        <div class="sessao-overlay" aria-hidden="true"></div>
+
+                        <div class="sessao-topbar">
+                            <span class="sessao-index">${indice}</span>
+                            <span class="sessao-client">${escaparHtml(cliente)}</span>
+                            <span class="sessao-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M7 17L17 7"></path>
+                                    <path d="M8 7h9v9"></path>
+                                </svg>
+                            </span>
+                        </div>
+
                         <div class="sessao-info">
-                            <h3>${s.titulo}</h3>
+                            <div class="sessao-kicker">Sheldon Dias / Esportes</div>
+                            <h3>${escaparHtml(titulo)}</h3>
                             <div class="sessao-meta">
-                                <span>${s.data}</span>
-                                <span class="linha" aria-hidden="true"></span>
-                                <span>${s.local}</span>
+                                <span>${escaparHtml(data)}</span>
+                                <span class="meta-separator" aria-hidden="true"></span>
+                                <span>${escaparHtml(local)}</span>
+                                <span class="sessao-open">Abrir galeria</span>
                             </div>
                         </div>
                     </a>
                 `;
             }).join("");
-
         }
 
         carregarSessoes();
 
-    </script>
-
-    <script>
         document.addEventListener("contextmenu", function (e) {
             if (e.target.tagName === "IMG") e.preventDefault();
         });
+
         document.addEventListener("dragstart", function (e) {
             if (e.target.tagName === "IMG") e.preventDefault();
         });
     </script>
-
 </body>
 </html>
