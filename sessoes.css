@@ -1,0 +1,33 @@
+/* Design compartilhado das páginas de sessões. */
+:root{color-scheme:dark;--bg:#101111;--text:#f5f4f0;--muted:#a8aaa6;--line:#303332;--accent:#d6e5bb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:7px}
+nav{min-height:90px;padding:24px max(6vw,20px);display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line)}
+nav h1{font-size:1rem;letter-spacing:.2em;font-weight:700}nav ul{display:flex;gap:30px;list-style:none}nav ul a{font-size:.875rem;color:var(--muted);padding:8px 0;display:block}nav ul a:hover,nav ul a.ativo{color:var(--text)}nav a.ativo{border-bottom:1px solid var(--accent)}
+.hero-categoria{max-width:1440px;margin:auto;padding:76px max(6vw,20px) 60px;display:grid;grid-template-columns:1fr 1fr;gap:16px 60px;align-items:end}
+.hero-categoria>span{grid-column:1/-1;text-transform:uppercase;letter-spacing:.2em;font-size:.75rem;color:var(--accent)}
+.hero-categoria h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;letter-spacing:-.04em;font-size:clamp(3.7rem,8vw,7.5rem);line-height:1.05}
+.hero-categoria p{max-width:430px;justify-self:end;color:var(--muted);font-size:1rem;line-height:1.8;padding-bottom:7px}
+#sessoes{max-width:1440px;margin:auto;padding:0 max(6vw,20px) 100px}
+.section-heading{border-top:1px solid var(--line);padding:24px 0 32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.section-heading h2{font-size:.875rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase}.section-heading>span{font-size:.75rem;color:var(--muted)}
+.sessoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:54px 32px}
+.sessao{display:block;min-width:0;border-bottom:1px solid var(--line);padding-bottom:24px}
+.capa-wrap{position:relative;aspect-ratio:5/4;overflow:hidden;border-radius:6px;background:#1e2220;isolation:isolate}
+.capa-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.65,.3,1)}
+.capa-wrap:after{content:'';position:absolute;inset:65% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.42));pointer-events:none;z-index:0}
+.sessao-cliente{position:absolute;bottom:20px;left:20px;right:80px;font-size:.75rem;line-height:1.5;color:white;z-index:1;text-shadow:0 1px 8px #000}
+.sessao-seta{position:absolute;right:18px;bottom:18px;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:var(--text);color:var(--bg);z-index:1;transition:background .25s,transform .25s}.sessao-seta svg{width:18px;height:18px}
+.sessao-info{padding-top:22px}.sessao-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;color:var(--muted);font-size:.75rem;line-height:1.65;margin-bottom:9px}.sessao-meta span+span{border-left:1px solid #545953;padding-left:14px;min-width:0;overflow-wrap:anywhere}
+.sessao-info h3{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:clamp(1.65rem,2.8vw,2.55rem);letter-spacing:-.02em;line-height:1.18;overflow-wrap:anywhere;transition:color .25s}
+.sessao-abrir{display:block;margin-top:14px;font-size:.75rem;color:var(--muted)}
+.sessoes-status{grid-column:1/-1;padding:65px 20px;color:var(--muted);text-align:center;line-height:1.7;border:1px solid var(--line);border-radius:6px}
+.capa-indisponivel{height:100%;display:grid;place-items:center;font-size:.875rem;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:32px 20px;text-align:center;color:var(--muted);font-size:.75rem;line-height:1.8}footer a{text-decoration:underline;text-underline-offset:4px}
+@media(hover:hover){.sessao:hover img{transform:scale(1.045)}.sessao:hover h3{color:var(--accent)}.sessao:hover .sessao-seta{background:var(--accent);transform:rotate(45deg)}}
+@media(min-width:1500px){nav{padding-inline:max(6vw,calc((100vw - 1260px)/2))}}
+@media(max-width:700px){nav{flex-direction:column;gap:16px;padding:24px 20px 17px}nav ul{gap:28px}.hero-categoria{padding:44px 20px 36px;grid-template-columns:1fr;gap:18px}.hero-categoria p{justify-self:start;max-width:100%;font-size:.875rem}.hero-categoria h2{font-size:4.4rem}#sessoes{padding:0 20px 64px}.sessoes{grid-template-columns:1fr;gap:34px}.section-heading{padding:21px 0 25px}.capa-wrap{aspect-ratio:1.12}.sessao-info h3{font-size:2rem}.sessao-info{padding-top:18px}}
+@media(max-width:360px){nav ul{gap:20px}.hero-categoria h2{font-size:3.7rem}.section-heading{align-items:start;flex-direction:column;gap:8px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

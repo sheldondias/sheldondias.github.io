@@ -3,139 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#070707">
     <title>Esportes | Sheldon Dias Fotografia</title>
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
-    <link rel="stylesheet" href="categoria.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="sessoes.css">
 </head>
+
 <body>
-    <nav aria-label="Navegação principal">
+
+    <nav>
         <h1><a href="index.html">SHELDON DIAS</a></h1>
+
         <ul>
-            <li><a href="esportes.html" class="ativo" aria-current="page">Esportes</a></li>
+            <li><a href="esportes.html" class="ativo">Esportes</a></li>
             <li><a href="eventos.html">Eventos</a></li>
             <li><a href="retratos.html">Retratos</a></li>
         </ul>
     </nav>
 
-    <header class="hero-categoria" style="--hero-image: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1800');">
-        <div class="hero-grain" aria-hidden="true"></div>
-        <div class="hero-inner">
-            <span class="hero-kicker">Portfólio / Trabalhos</span>
-            <h2>Esportes</h2>
-            <p>Ritmo, esforço e a linha de chegada. Cada prova reunida em uma sessão — clique para ver todas as fotos do seu pelotão.</p>
+    <div class="hero-categoria">
+        <span>Trabalhos</span>
+        <h2>Esportes</h2>
+        <p>Ritmo, esforço e a linha de chegada. Cada prova reunida em uma sessão — clique para ver todas as fotos do seu pelotão.</p>
+    </div>
+
+    <section id="sessoes">
+
+        <div class="section-heading"><h2>Sessões</h2><span>Selecione uma galeria</span></div>
+
+        <div class="sessoes" id="grid-sessoes">
+            <p class="sessoes-status">Carregando sessões...</p>
         </div>
-    </header>
 
-    <main>
-        <section class="portfolio-section" id="sessoes">
-            <div class="section-head">
-                <div>
-                    <span class="section-eyebrow">Arquivo selecionado</span>
-                    <h2>Últimos trabalhos</h2>
-                </div>
-                <div class="session-count" id="session-count">Carregando</div>
-            </div>
-
-            <div class="sessoes" id="grid-sessoes">
-                <p class="sessoes-status">Carregando sessões...</p>
-            </div>
-        </section>
-    </main>
+    </section>
 
     <footer>
         © 2026 Sheldon Dias — Todos os direitos reservados. · <a href="index.html">Voltar ao início</a>
     </footer>
 
     <script src="dados.js"></script>
+    <script src="sessoes.js" data-categoria="esportes"></script>
+
     <script>
-        function escaparHtml(valor) {
-            return String(valor || "")
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        async function carregarSessoes() {
-            const container = document.getElementById("grid-sessoes");
-            const contador = document.getElementById("session-count");
-
-            let todas;
-            try {
-                todas = await buscarSessoes();
-            } catch (erro) {
-                contador.textContent = "Indisponível";
-                container.innerHTML = '<p class="sessoes-status">Não foi possível carregar as sessões. Verifique o link da planilha em dados.js.</p>';
-                return;
-            }
-
-            const desta = todas.filter(function (s) {
-                return s.categoria.toLowerCase() === "esportes" && !s.protegida;
-            });
-
-            contador.textContent = desta.length + (desta.length === 1 ? " sessão" : " sessões");
-
-            if (!desta.length) {
-                container.innerHTML = '<p class="sessoes-status">Nenhuma sessão de Esportes cadastrada ainda.</p>';
-                return;
-            }
-
-            container.innerHTML = desta.map(function (s, i) {
-                const titulo = s.titulo || "Sessão";
-                const tamanhoTitulo = titulo.length;
-                const classeTitulo = tamanhoTitulo > 34
-                    ? " titulo-muito-longo"
-                    : (tamanhoTitulo > 22 ? " titulo-longo" : "");
-
-                const indice = String(i + 1).padStart(2, "0");
-                const cliente = s.cliente || "Galeria";
-                const data = s.data || "";
-                const local = s.local || "";
-
-                return `
-                    <a class="sessao${classeTitulo}" style="--i:${i}" href="galeria.html?sessao=${encodeURIComponent(s.slug)}" aria-label="Abrir sessão ${escaparHtml(titulo)}">
-                        <div class="capa-wrap">
-                            <img src="${s.capa}" alt="Capa da sessão ${escaparHtml(titulo)}" loading="lazy">
-                        </div>
-                        <div class="sessao-overlay" aria-hidden="true"></div>
-
-                        <div class="sessao-topbar">
-                            <span class="sessao-index">${indice}</span>
-                            <span class="sessao-client">${escaparHtml(cliente)}</span>
-                            <span class="sessao-arrow" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M7 17L17 7"></path>
-                                    <path d="M8 7h9v9"></path>
-                                </svg>
-                            </span>
-                        </div>
-
-                        <div class="sessao-info">
-                            <div class="sessao-kicker">Sheldon Dias / Esportes</div>
-                            <h3>${escaparHtml(titulo)}</h3>
-                            <div class="sessao-meta">
-                                <span>${escaparHtml(data)}</span>
-                                <span class="meta-separator" aria-hidden="true"></span>
-                                <span>${escaparHtml(local)}</span>
-                                <span class="sessao-open">Abrir galeria</span>
-                            </div>
-                        </div>
-                    </a>
-                `;
-            }).join("");
-        }
-
-        carregarSessoes();
-
         document.addEventListener("contextmenu", function (e) {
             if (e.target.tagName === "IMG") e.preventDefault();
         });
-
         document.addEventListener("dragstart", function (e) {
             if (e.target.tagName === "IMG") e.preventDefault();
         });
     </script>
+
 </body>
 </html>
