@@ -102,18 +102,25 @@
             display: block;
             text-decoration: none;
             color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.25s ease;
         }
 
         .album-imagem {
             position: relative;
             overflow: hidden;
-            transition: height 1s ease-in-out;
+            border-radius: 20px;
+            border: 2px solid #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: height 1s ease-in-out, border-color 0.3s, box-shadow 0.3s;
         }
 
         .album-imagem img.foto-principal {
             display: block;
-            width: 98%;
-            height: 98%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             filter: grayscale(100%);
             transition: filter 0.6s;
@@ -131,26 +138,69 @@
             transition: opacity 1s ease-in-out;
         }
 
+        /* degradê na base da foto para destacar o rótulo */
+        .album-imagem::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 45%);
+        }
+
+        /* efeito de botão: sobe no hover, afunda ao clicar */
         .album:hover {
-            transform: scale(1.02);
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        .album:hover .album-imagem {
+            border-color: #ff6a00;
+            box-shadow: 0 18px 40px rgba(255, 106, 0, 0.3);
+        }
+
+        .album:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .album:active .album-imagem {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .album:focus-visible {
+            outline: 3px solid #ff6a00;
+            outline-offset: 5px;
         }
 
         .album:hover .album-imagem img {
             filter: grayscale(0%);
         }
 
+        /* rótulo em formato de botão (mesmo estilo do botão FOTOP) */
         .album-local {
             position: absolute;
-            bottom: -15px;
+            bottom: 22px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 2;
-            background: #111;
-            border: 1px solid #222;
-            padding: 12px 20px;
-            font-size: 0.75rem;
+            z-index: 3;
+            white-space: nowrap;
+            background: #ff6a00;
+            color: #000;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 0.8rem;
             letter-spacing: 2px;
             text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .album-local::after {
+            content: " →";
+        }
+
+        .album:hover .album-local {
+            background: #fff;
         }
 
         .contato {
@@ -436,13 +486,13 @@
         }
 
         // Ajusta a altura do card para a foto atual (mesma lógica do site
-        // original: a imagem ocupa 98% de largura e a altura acompanha a
+        // original: a imagem ocupa 100% da largura e a altura acompanha a
         // proporção real da foto — nunca corta).
         function ajustarAltura(container, img) {
             if (!img.naturalWidth || !img.naturalHeight) return;
             const largura = container.getBoundingClientRect().width;
             if (!largura) return;
-            const altura = (largura * 0.98) * (img.naturalHeight / img.naturalWidth);
+            const altura = largura * (img.naturalHeight / img.naturalWidth);
             container.style.height = altura + "px";
         }
 
