@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="referrer" content="no-referrer">
     <meta name="color-scheme" content="dark">
-    <title>Painel das sessões privadas | Sheldon Dias Fotografia</title>
+    <title>Sheldon Dias</title>
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -177,6 +177,25 @@
             max-width: 440px;
         }
 
+        /* Tela de senha: só o campo, centralizado (132px = espaço do .pagina acima e abaixo) */
+        .bloqueio.so-campo { min-height: calc(100vh - 132px); }
+
+        .bloqueio input[type="password"].invalido {
+            border-color: var(--erro);
+            animation: tremer 0.35s;
+        }
+
+        .bloqueio input[type="password"]:disabled { opacity: 0.55; }
+
+        @keyframes tremer {
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bloqueio input[type="password"].invalido { animation: none; }
+        }
+
         .bloqueio h1 { margin-bottom: 14px; }
         .bloqueio .texto { color: var(--muted); margin-bottom: 34px; }
         .bloqueio .campo { margin-bottom: 18px; }
@@ -301,16 +320,14 @@
 </head>
 
 <body>
-    <nav class="voltar" aria-label="Navegação do painel">
+    <nav class="voltar" aria-label="Navegação do painel" hidden>
         <a class="btn btn-voltar" href="index.html">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
             Voltar ao site
         </a>
     </nav>
 
-    <main class="pagina" id="app">
-        <p class="muted">Carregando…</p>
-    </main>
+    <main class="pagina" id="app"></main>
 
     <noscript>
         <p style="padding:48px">Este painel precisa de JavaScript para funcionar.</p>
@@ -334,6 +351,10 @@
         const MIN_SENHA_SESSAO = 8;
 
         const app = document.getElementById("app");
+        const barraVoltar = document.querySelector(".voltar");
+
+        // O botão "Voltar ao site" só aparece depois da tela de senha.
+        function mostrarVoltar(sim) { barraVoltar.hidden = !sim; }
 
         let sessoes = [];
         let chave = null;       // chave AES (CryptoKey não extraível), só em memória
@@ -511,6 +532,7 @@
         // ---------------------------------------------------------------
 
         function renderMensagem(texto, comBotao) {
+            mostrarVoltar(true);
             app.innerHTML =
                 '<div class="bloqueio">' +
                 '<h1>Sessões privadas</h1>' +
@@ -526,6 +548,7 @@
         }
 
         function renderConfiguracao() {
+            mostrarVoltar(true);
             app.innerHTML =
                 '<section class="bloqueio">' +
                 '<h1>Configurar o painel</h1>' +
@@ -541,6 +564,7 @@
         }
 
         function renderSegredos(verificador, segredo) {
+            mostrarVoltar(true);
             function item(nome, valor, nota) {
                 return '<div class="item"><label>Nome: <code>' + nome + '</code></label>' +
                     '<div class="campo-acao"><input type="text" readonly value="' + esc(valor) + '" aria-label="Valor de ' + nome + '">' +
@@ -564,20 +588,19 @@
                 '</section>';
         }
 
+        // Só o campo, sem nenhum texto. Enter envia. Senha errada: campo treme e fica vermelho.
         function renderBloqueio() {
+            mostrarVoltar(false);
             app.innerHTML =
-                '<section class="bloqueio">' +
-                '<h1>Sessões privadas</h1>' +
-                '<p class="texto">Digite a senha do painel para ver as sessões e as senhas dos clientes.</p>' +
+                '<section class="bloqueio so-campo">' +
                 '<form id="form-bloqueio">' +
-                    campoSenha("mestra", "Senha do painel", "current-password", "") +
-                    '<div class="erro" id="erro" role="alert"></div>' +
-                    '<button class="btn btn-principal" type="submit" id="enviar">Abrir painel</button>' +
+                    '<input type="password" id="mestra" autocomplete="current-password" enterkeyhint="go" aria-label="Senha" required>' +
                 '</form></section>';
             document.getElementById("mestra").focus();
         }
 
         function renderPainel() {
+            mostrarVoltar(true);
             app.innerHTML =
                 '<header class="topo">' +
                     '<div><h1>Sessões privadas</h1><p class="muted" id="resumo"></p></div>' +
@@ -800,6 +823,7 @@
 
         app.addEventListener("input", function (ev) {
             if (ev.target.id === "busca") { busca = ev.target.value; renderLista(); }
+            if (ev.target.id === "mestra") ev.target.classList.remove("invalido");
         });
 
         app.addEventListener("submit", function (ev) {
@@ -835,12 +859,9 @@
         }
 
         async function aoEntrar(form) {
-            const erro = document.getElementById("erro");
-            const botao = document.getElementById("enviar");
             const campo = document.getElementById("mestra");
-            erro.textContent = "";
-            botao.disabled = true;
-            botao.textContent = "Verificando…";
+            campo.classList.remove("invalido");
+            campo.disabled = true;
 
             try {
                 const d = await derivarDaSenha(campo.value);
@@ -857,11 +878,10 @@
             } catch (e) {
                 chave = null;
                 authHex = null;
-                erro.textContent = e.status === 401
-                    ? "Senha incorreta."
-                    : "Não foi possível abrir o painel agora. " + (e.message || "");
-                botao.disabled = false;
-                botao.textContent = "Abrir painel";
+                campo.disabled = false;
+                void campo.offsetWidth; // reinicia a animação se errar de novo
+                campo.classList.add("invalido");
+                campo.focus();
                 campo.select();
             }
         }
@@ -940,7 +960,7 @@
         });
 
         async function iniciar() {
-            app.innerHTML = '<p class="muted">Carregando…</p>';
+            app.innerHTML = "";
             try {
                 if (!window.crypto || !crypto.subtle) {
                     renderMensagem("Este navegador não oferece criptografia segura. Abra o painel por https, em um navegador atualizado.", false);

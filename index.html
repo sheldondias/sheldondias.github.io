@@ -225,10 +225,46 @@
         }
 
         footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px 16px;
             text-align: center;
             padding: 40px;
             border-top: 1px solid #222;
             color: #888;
+        }
+
+        /* Botão pequeno e discreto para o painel */
+        .restrito {
+            position: relative;
+            display: inline-block;
+            padding: 4px 12px;
+            border: 1px solid #2a2a2a;
+            border-radius: 50px;
+            color: #666;
+            font-size: 0.68rem;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        /* Área de toque maior que o botão visível, para não ser difícil de acertar no celular */
+        .restrito::after {
+            content: "";
+            position: absolute;
+            inset: -10px -8px;
+        }
+
+        .restrito:hover {
+            color: #ff6a00;
+            border-color: #ff6a00;
+        }
+
+        .restrito:focus-visible {
+            outline: 3px solid #ff6a00;
+            outline-offset: 3px;
         }
 
 
@@ -1164,6 +1200,8 @@ nav ul {
     <footer>
 
         © 2026 Sheldon Dias — Todos os direitos reservados.
+
+        <a class="restrito" href="painel.html" rel="nofollow">Restrito</a>
 
     </footer>
 
