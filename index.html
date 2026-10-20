@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheldon Dias | Fotografia</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+        }
+
+        img {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            background: rgba(15, 15, 15, 0.75);
+            z-index: 1000;
+        }
+
+        nav h1 {
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.7;
+        }
+
+        section {
+            padding: 120px 10%;
+        }
+   
+        .nav-botao {
+            background: #ff6a00;
+            color: #000 !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 26px;
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+
+        .nav-botao:hover {
+            opacity: 0.85 !important;
+            transform: translateY(-1px);
+        }
+
+
+        section h2 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+        }
+
+        .portfolio {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+            gap: 60px 25px;
+        }
+
+        .album {
+            display: block;
+            text-decoration: none;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.25s ease;
+        }
+
+        .album-imagem {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 2px solid #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: height 1s ease-in-out, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .album-imagem img.foto-principal {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.6s;
+        }
+
+        .album-imagem img.foto-fantasma {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            object-fit: cover;
+            filter: grayscale(100%);
+            opacity: 1;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        /* degradê na base da foto para destacar o rótulo */
+        .album-imagem::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 45%);
+        }
+
+        /* efeito de botão: sobe no hover, afunda ao clicar */
+        .album:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        .album:hover .album-imagem {
+            border-color: #ff6a00;
+            box-shadow: 0 18px 40px rgba(255, 106, 0, 0.3);
+        }
+
+        .album:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .album:active .album-imagem {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .album:focus-visible {
+            outline: 3px solid #ff6a00;
+            outline-offset: 5px;
+        }
+
+        .album:hover .album-imagem img {
+            filter: grayscale(0%);
+        }
+
+        /* rótulo em formato de botão (mesmo estilo do botão FOTOP) */
+        .album-local {
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            white-space: nowrap;
+            background: #ff6a00;
+            color: #000;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .album-local::after {
+            content: " →";
+        }
+
+        .album:hover .album-local {
+            background: #fff;
+        }
+
+        .contato {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contato a {
+            text-decoration: none;
+            color: white;
+            padding: 16px 28px;
+            border: 1px solid #444;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .contato a:hover {
+            background: white;
+            color: black;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid #222;
+            color: #888;
+        }
+
+
+.sobre-container {
+    display: grid;
+    grid-template-columns: 1fr 500px;
+    gap: 80px;
+    align-items: center;
+}
+
+.sobre-texto {
+    position: relative;
+}
+
+.sobre-texto h2 {
+    text-align: left;
+    font-size: 4rem;
+    margin: 10px 0 40px;
+}
+
+.sobre-texto p {
+    color: #bdbdbd;
+    line-height: 2;
+    margin-bottom: 30px;
+}
+
+.sobre-estatisticas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.sobre-estatisticas div {
+    padding-top: 20px;
+    border-top: 1px solid #222;
+}
+
+.sobre-estatisticas h3 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.sobre-estatisticas span {
+    color: #888;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.sobre-imagem {
+    position: relative;
+}
+
+.sobre-imagem img {
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+    filter: grayscale(100%);
+}
+
+.sobre-local {
+    position: absolute;
+    bottom: -15px;
+    left: -15px;
+    background: #111;
+    border: 1px solid #222;
+    padding: 12px 20px;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 1000px) {
+
+    .sobre-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sobre-texto h2 {
+        font-size: 3rem;
+        text-align: center;
+    }
+
+    .sobre-imagem img {
+        height: 500px;
+    }
+
+}
+
+
+/* ===== Simulador de investimento ===== */
+.sim-intro {
+    text-align: center;
+    color: #888;
+    max-width: 560px;
+    margin: -20px auto 50px;
+    line-height: 1.8;
+    font-size: 0.95rem;
+}
+
+.sim {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 25px;
+    align-items: stretch;
+}
+
+/* Cada cartão fica dentro de uma coluna que tem a altura da linha inteira
+   (a do cartão mais alto). O cartão menor acompanha a rolagem e para quando
+   chega na base da coluna, alinhado com o fim do outro. */
+.sim-col {
+    min-width: 0;
+}
+
+.sim-card {
+    position: sticky;
+    top: 110px;
+    border: 2px solid #2a2a2a;
+    border-radius: 20px;
+    background: #111;
+    padding: 36px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.sim-bloco + .sim-bloco {
+    margin-top: 36px;
+}
+
+.sim-rotulo {
+    display: block;
+    color: #888;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.sim-tipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sim-tipo {
+    background: transparent;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 50px;
+    padding: 12px 26px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.sim-tipo:hover {
+    border-color: #ff6a00;
+}
+
+.sim-tipo.ativo {
+    background: #ff6a00;
+    border-color: #ff6a00;
+    color: #000;
+}
+
+.sim-tipo:focus-visible,
+.sim-cta:focus-visible {
+    outline: 3px solid #ff6a00;
+    outline-offset: 3px;
+}
+
+.sim-qtd-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.sim-qtd-desc {
+    color: #888;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    max-width: 280px;
+}
+
+.sim-qtd-valor {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #ff6a00;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.sim-qtd-valor small {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.sim-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(to right, #ff6a00 var(--p, 0%), #2a2a2a var(--p, 0%));
+}
+
+.sim-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #ff6a00;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+}
+
+.sim-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #ff6a00;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.sim-range:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+}
+
+.sim-limites {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+.sim-itens {
+    list-style: none;
+    display: grid;
+    gap: 14px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #222;
+    font-size: 0.85rem;
+    color: #bdbdbd;
+}
+
+.sim-itens li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    line-height: 1.5;
+}
+
+.sim-itens li span:last-child {
+    white-space: nowrap;
+    color: #fff;
+}
+
+.sim-itens li.desconto span:last-child {
+    color: #ff6a00;
+}
+
+.sim-total {
+    padding: 24px 0 28px;
+}
+
+.sim-total-valor {
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-top: 8px;
+}
+
+.sim-nota {
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.75rem;
+    line-height: 1.7;
+}
+
+.sim-cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    background: #ff6a00;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 16px 28px;
+    border-radius: 50px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    transition: background 0.3s, transform 0.25s;
+}
+
+.sim-cta:hover {
+    background: #fff;
+    transform: translateY(-2px);
+}
+
+.sim-cta:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 1000px) {
+    .sim {
+        grid-template-columns: 1fr;
+    }
+
+    .sim-card {
+        position: static;
+    }
+
+}
+
+/* Telas baixas: um cartão grudado maior que a tela ficaria cortado. */
+@media (min-width: 1001px) and (max-height: 640px) {
+    .sim-card {
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .sim-card {
+        padding: 24px 20px;
+    }
+
+    .sim-qtd-topo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sim-total-valor {
+        font-size: 2.3rem;
+    }
+}
+
+
+/* ===== Área do cliente ===== */
+nav ul {
+    align-items: center;
+}
+
+.nav-cliente {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 50px;
+    padding: 11px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.nav-cliente svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.nav-cliente:hover {
+    border-color: #ff6a00;
+    color: #ff6a00;
+    transform: translateY(-1px);
+}
+
+.nav-cliente:focus-visible,
+.cli-fechar:focus-visible,
+.cli-btn:focus-visible {
+    outline: 3px solid #ff6a00;
+    outline-offset: 3px;
+}
+
+.cli-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.cli-overlay[hidden] {
+    display: none;
+}
+
+.cli-overlay.aberto {
+    opacity: 1;
+}
+
+.cli-card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: #111;
+    border: 2px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 44px 36px 36px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    text-align: center;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cli-overlay.aberto .cli-card {
+    transform: translateY(0) scale(1);
+}
+
+.cli-fechar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #888;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cli-fechar:hover {
+    background: #222;
+    color: white;
+}
+
+.cli-icone {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #2a2a2a;
+    border-radius: 50%;
+    color: #ff6a00;
+}
+
+.cli-icone svg {
+    width: 22px;
+    height: 22px;
+}
+
+.cli-eyebrow {
+    display: block;
+    color: #888;
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.cli-card h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.cli-texto {
+    color: #888;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    margin-bottom: 28px;
+}
+
+.cli-campo {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.cli-campo label {
+    display: block;
+    color: #888;
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.cli-campo input {
+    width: 100%;
+    background: #0a0a0a;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 15px 18px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.cli-campo input::placeholder {
+    color: #555;
+}
+
+.cli-campo input:focus {
+    border-color: #ff6a00;
+}
+
+.cli-campo.erro input {
+    border-color: #e5484d;
+}
+
+.cli-erro {
+    min-height: 1.4em;
+    margin: -4px 0 18px;
+    color: #e5484d;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.cli-escolha {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.cli-escolha[hidden] {
+    display: none;
+}
+
+.cli-escolha-titulo {
+    color: #888;
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.cli-opcao {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: white;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+}
+
+.cli-opcao:hover,
+.cli-opcao:focus-visible {
+    border-color: #ff6a00;
+    background: rgba(255, 106, 0, 0.06);
+    outline: none;
+}
+
+.cli-dica {
+    margin-top: 8px;
+    color: #666;
+    font-size: 0.75rem;
+}
+
+.cli-btn {
+    width: 100%;
+    background: #ff6a00;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 28px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    transition: background 0.3s, transform 0.25s, opacity 0.3s;
+}
+
+.cli-btn:hover:not(:disabled) {
+    background: #fff;
+    transform: translateY(-2px);
+}
+
+.cli-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.cli-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .cli-card {
+        padding: 40px 22px 28px;
+    }
+}
+
+/* ===== Celular ===== */
+@media (max-width: 768px) {
+    /* Menu numa linha só, com botões compactos */
+    nav {
+        padding: 12px 5%;
+        gap: 12px;
+    }
+
+    nav h1 {
+        font-size: 0.95rem;
+        letter-spacing: 2px;
+        white-space: nowrap;
+    }
+
+    nav ul {
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    .nav-cliente {
+        gap: 6px;
+        padding: 9px 14px;
+        font-size: 0.68rem;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+    }
+
+    .nav-cliente svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .nav-botao {
+        padding: 10px 16px;
+        font-size: 0.68rem;
+        letter-spacing: 0.4px;
+    }
+
+    /* O menu ficou mais baixo: seções precisam de menos espaço no topo */
+    section {
+        padding: 90px 6% 60px;
+    }
+
+    section h2 {
+        font-size: 2rem;
+        margin-bottom: 32px;
+    }
+
+    .sim-intro {
+        margin: -12px auto 32px;
+        font-size: 0.88rem;
+    }
+
+    /* Botões de tipo do orçamento: três lado a lado, do mesmo tamanho */
+    .sim-tipos {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .sim-tipo {
+        min-width: 0;
+        padding: 11px 4px;
+        font-size: 0.68rem;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+    }
+
+    .sim-bloco + .sim-bloco {
+        margin-top: 28px;
+    }
+}
+
+@media (max-width: 400px) {
+    nav h1 {
+        font-size: 0.85rem;
+        letter-spacing: 1.5px;
+    }
+
+    /* Só "Cliente" no botão, o ícone de cadeado já explica o resto */
+    .nav-extra {
+        display: none;
+    }
+
+    .nav-cliente,
+    .nav-botao {
+        padding: 9px 12px;
+    }
+
+    .sim-tipo {
+        font-size: 0.64rem;
+        letter-spacing: 0.3px;
+    }
+}
+
+@media (max-width: 340px) {
+    nav {
+        gap: 8px;
+    }
+
+    nav h1 {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    nav ul {
+        gap: 6px;
+    }
+
+    .nav-cliente,
+    .nav-botao {
+        padding: 8px 10px;
+        font-size: 0.64rem;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+    <nav>
+        <h1>SHELDON DIAS</h1>
+
+        <ul>
+            <li>
+                <button type="button" class="nav-cliente" id="btnCliente" aria-haspopup="dialog" aria-label="Área do cliente">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <span class="nav-extra">Área do&nbsp;</span>cliente
+                </button>
+            </li>
+            <li><a class="nav-botao" href="https://sheldondias.fotop.com/">FOTOP</a></li>
+        </ul>
+    </nav>
+
+    <section id="portfolio">
+
+        <h2>Trabalhos</h2>
+
+        <div class="portfolio">
+
+            <a class="album" href="eventos.html">
+
+                <div class="album-imagem" data-categoria="Eventos">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786129198/IMG_7778_rnlzh5.jpg" alt="" class="foto-principal">
+                    <span class="album-local">Eventos</span>
+                </div>
+
+            </a>
+
+            <a class="album" href="esportes.html">
+
+                <div class="album-imagem" data-categoria="Esportes">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786127286/IMG_4354_nupiwe.jpg" alt="" class="foto-principal">
+                    <span class="album-local">Esportes</span>
+                </div>
+
+            </a>
+
+            <a class="album" href="retratos.html">
+
+                <div class="album-imagem" data-categoria="Retratos">
+                    <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786126774/IMG_3387_uqaogo.jpg" alt="" class="foto-principal">
+                    <span class="album-local">Retratos</span>
+                </div>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <section id="sobre">
+
+        <div class="sobre-container">
+
+            <div class="sobre-texto">
+
+                <h2>Sobre</h2>
+
+                <p>
+                    Sheldon Dias é fotógrafo documental e artístico, dedicado a
+                    transformar momentos cotidianos em composições marcantes.
+                    Seu trabalho explora a relação entre luz, emoção e narrativa,
+                    criando imagens que transitam entre o íntimo e o grandioso.
+                </p>
+
+                <p>
+                    Ao longo dos anos, desenvolveu projetos em retratos,
+                    paisagens e eventos, sempre buscando uma estética
+                    minimalista e atemporal.
+                </p>
+
+                <div class="sobre-estatisticas">
+
+                    <div>
+                        <h3>2+</h3>
+                        <span>Anos de experiência</span>
+                    </div>
+
+                    <div>
+                        <h3>5+</h3>
+                        <span>Projetos realizados</span>
+                    </div>
+
+                    <div>
+                        <h3>3+</h3>
+                        <span>Cidades fotografadas</span>
+                    </div>
+
+                    <div>
+                        <h3>11k+</h3>
+                        <span>Fotos capturadas</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="sobre-imagem">
+
+                <img src="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786283195/WhatsApp_Image_2026-08-09_at_10.42.33_hb1wsi.jpg"
+                     alt="Retrato">
+
+                <span class="sobre-local">Cuiabá-MT, 2026</span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section id="simulador">
+
+        <h2>Investimento</h2>
+
+        <p class="sim-intro">
+            Monte uma estimativa na hora, de acordo com o tipo e o tamanho do seu projeto.
+            O valor final é confirmado no agendamento.
+        </p>
+
+        <div class="sim">
+
+            <div class="sim-col">
+            <div class="sim-card">
+
+                <div class="sim-bloco">
+                    <span class="sim-rotulo">1. Tipo de trabalho</span>
+                    <div class="sim-tipos" id="simTipos" role="group" aria-label="Tipo de trabalho"></div>
+                </div>
+
+                <div class="sim-bloco">
+                    <span class="sim-rotulo" id="simQtdRotulo">2. Duração da sessão</span>
+                    <div class="sim-qtd-topo">
+                        <p class="sim-qtd-desc" id="simDesc"></p>
+                        <div class="sim-qtd-valor"><span id="simQtd">0</span><small id="simUnidade"></small></div>
+                    </div>
+                    <input type="range" class="sim-range" id="simRange" aria-labelledby="simQtdRotulo">
+                    <div class="sim-limites"><span id="simMin"></span><span id="simMax"></span></div>
+                </div>
+
+            </div>
+            </div>
+
+            <div class="sim-col">
+            <div class="sim-card sim-resumo">
+
+                <span class="sim-rotulo">Resumo da estimativa</span>
+
+                <ul class="sim-itens" id="simItens"></ul>
+
+                <div class="sim-total">
+                    <span class="sim-rotulo" style="margin-bottom:0">Investimento estimado</span>
+                    <div class="sim-total-valor" id="simTotal" aria-live="polite">R$ 0</div>
+                    <p class="sim-nota">Valor aproximado, com edição e entrega das fotos incluídas. Deslocamento, quando houver, é combinado no agendamento.</p>
+                </div>
+
+                <a class="sim-cta" href="#contato">Agendar minha sessão →</a>
+
+            </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section id="contato">
+
+        <h2>Agende sua sessão!!!</h2>
+
+        <!-- Cal inline embed code begins -->
+        <div style="width:100%;height:100%;overflow:scroll" id="my-cal-inline-15min"></div>
+        <script type="text/javascript">
+          (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+        Cal("init", "15min", {origin:"https://app.cal.com"});
+        Cal.config = Cal.config || {};
+        Cal.config.forwardQueryParams = true;
+
+          Cal.ns["15min"]("inline", {
+            elementOrSelector:"#my-cal-inline-15min",
+            config: {"layout":"month_view","useSlotsViewOnSmallScreen":"true"},
+            calLink: "sheldon-dias/15min",
+          });
+
+          Cal.ns["15min"]("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+          </script>
+          <!-- Cal inline embed code ends -->
+
+    </section>
+
+    <footer>
+
+        © 2026 Sheldon Dias — Todos os direitos reservados.
+
+    </footer>
+
+    <div class="cli-overlay" id="cliOverlay" hidden>
+        <div class="cli-card" role="dialog" aria-modal="true" aria-labelledby="cliTitulo">
+
+            <button type="button" class="cli-fechar" id="cliFechar" aria-label="Fechar">&times;</button>
+
+            <div class="cli-icone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </div>
+
+            <span class="cli-eyebrow">Área exclusiva</span>
+            <h3 id="cliTitulo">Galeria do cliente</h3>
+
+            <p class="cli-texto">
+                Digite a senha da sua sessão, enviada por mensagem ou no contrato,
+                para ver e baixar suas fotos.
+            </p>
+
+            <form id="cliForm" novalidate>
+                <div class="cli-campo" id="cliCampo">
+                    <label for="cliSenha">Senha da sessão</label>
+                    <input type="password" id="cliSenha" placeholder="Digite sua senha" autocomplete="off" aria-describedby="cliErro">
+                </div>
+
+                <div class="cli-erro" id="cliErro" role="alert"></div>
+
+                <div class="cli-escolha" id="cliEscolha" hidden></div>
+
+                <button type="submit" class="cli-btn" id="cliBtn" disabled>Abrir minha galeria →</button>
+            </form>
+
+        </div>
+    </div>
+
+    <script src="dados.js"></script>
+    <script>
+
+        // Troca a foto de cada card (Eventos/Esportes/Retratos) automaticamente,
+        // em looping infinito, usando as fotos de todas as sessões daquela categoria.
+        // Faz um crossfade de verdade: a foto antiga fica sobreposta (do tamanho
+        // exato dela) e vai sumindo por cima da foto nova, sem passar pelo fundo.
+        const INTERVALO_SLIDE = 4000; // tempo (ms) que cada foto fica visível
+        const DURACAO_FADE = 1000;    // precisa bater com a transition do CSS
+
+        // Pré-carrega as fotos no cache do navegador, assim quando a hora de
+        // trocar chegar a imagem já está pronta e o fade fica suave (sem "pulo").
+        function precarregarFotos(fotos) {
+            fotos.forEach(function (url) {
+                const pre = new Image();
+                pre.src = url;
+            });
+        }
+
+        // Ajusta a altura do card para a foto atual (mesma lógica do site
+        // original: a imagem ocupa 100% da largura e a altura acompanha a
+        // proporção real da foto — nunca corta).
+        function ajustarAltura(container, img) {
+            if (!img.naturalWidth || !img.naturalHeight) return;
+            const largura = container.getBoundingClientRect().width;
+            if (!largura) return;
+            const altura = largura * (img.naturalHeight / img.naturalWidth);
+            container.style.height = altura + "px";
+        }
+
+        function trocarFoto(container, imgPrincipal, novoSrc) {
+            const rectImg = imgPrincipal.getBoundingClientRect();
+
+            // "foto fantasma": uma cópia da foto atual, do tamanho exato que
+            // ela está agora, sobreposta por cima — é ela que vai desaparecer,
+            // revelando a foto nova (que já estará por baixo).
+            const fantasma = document.createElement("img");
+            fantasma.src = imgPrincipal.currentSrc || imgPrincipal.src;
+            fantasma.alt = "";
+            fantasma.className = "foto-fantasma";
+            fantasma.style.width = rectImg.width + "px";
+            fantasma.style.height = rectImg.height + "px";
+            container.appendChild(fantasma);
+
+            // troca a foto principal por baixo (isso pode mudar a altura do card,
+            // e o CSS "transition: height" faz esse ajuste ficar suave)
+            imgPrincipal.src = novoSrc;
+            imgPrincipal.onload = function () {
+                ajustarAltura(container, imgPrincipal);
+            };
+
+            // no próximo frame começa o fade da fantasma, revelando a foto nova
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    fantasma.style.opacity = "0";
+                });
+            });
+
+            setTimeout(function () {
+                fantasma.remove();
+            }, DURACAO_FADE + 100);
+        }
+
+        function iniciarSlideshow(container, imgPrincipal, fotos) {
+            // embaralha a ordem para variar o card a cada visita
+            for (let i = fotos.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = fotos[i];
+                fotos[i] = fotos[j];
+                fotos[j] = tmp;
+            }
+
+            if (fotos.length < 2) return;
+
+            precarregarFotos(fotos);
+
+            let indice = 0;
+            setInterval(function () {
+                indice = (indice + 1) % fotos.length;
+                trocarFoto(container, imgPrincipal, fotos[indice]);
+            }, INTERVALO_SLIDE);
+        }
+
+        async function iniciarCapasHome() {
+            let sessoes;
+            try {
+                sessoes = await buscarSessoes();
+            } catch (erro) {
+                console.error("[slideshow] Não foi possível carregar a planilha/fotos. O card vai ficar com a foto fixa. Detalhe do erro:", erro);
+                return; // mantém a foto estática original de cada card
+            }
+
+            console.log("[slideshow] Sessões carregadas da planilha:", sessoes.length);
+
+            ["Eventos", "Esportes", "Retratos"].forEach(function (categoria) {
+                const container = document.querySelector('.album-imagem[data-categoria="' + categoria + '"]');
+                if (!container) return;
+
+                const destaCategoria = sessoes.filter(function (s) {
+                    return s.categoria.toLowerCase() === categoria.toLowerCase() && !s.protegida;
+                });
+
+                const fotos = [];
+                const vistas = new Set();
+                destaCategoria.forEach(function (s) {
+                    [s.capa].concat(s.fotos.map(function (f) { return f.url; })).forEach(function (url) {
+                        if (url && !vistas.has(url)) {
+                            vistas.add(url);
+                            fotos.push(url);
+                        }
+                    });
+                });
+
+                console.log("[slideshow] " + categoria + ": " + destaCategoria.length + " sessão(ões), " + fotos.length + " foto(s) no total.");
+
+                if (!fotos.length) {
+                    console.warn("[slideshow] " + categoria + " sem fotos — card vai ficar fixo nessa categoria.");
+                    return;
+                }
+                if (fotos.length < 2) {
+                    console.warn("[slideshow] " + categoria + " tem só 1 foto — nada para revezar ainda. Adicione mais sessões/fotos na planilha.");
+                }
+
+                iniciarSlideshow(container, container.querySelector("img.foto-principal"), fotos);
+            });
+        }
+
+        iniciarCapasHome();
+
+        // Ajusta a altura inicial de cada card para a foto que já está no HTML,
+        // assim que ela terminar de carregar (evita "pulo" no primeiro instante).
+        document.querySelectorAll(".album-imagem img.foto-principal").forEach(function (img) {
+            const container = img.closest(".album-imagem");
+            function aplicar() {
+                ajustarAltura(container, img);
+            }
+            if (img.complete) aplicar();
+            else img.addEventListener("load", aplicar);
+        });
+
+        // Recalcula as alturas quando a tela for redimensionada.
+        let timeoutResize;
+        window.addEventListener("resize", function () {
+            clearTimeout(timeoutResize);
+            timeoutResize = setTimeout(function () {
+                document.querySelectorAll(".album-imagem img.foto-principal").forEach(function (img) {
+                    ajustarAltura(img.closest(".album-imagem"), img);
+                });
+            }, 150);
+        });
+
+    </script>
+
+    <script>
+        document.addEventListener("contextmenu", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+        document.addEventListener("dragstart", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+    </script>
+
+    <script>
+
+        // Simulador de investimento — baseado na calculadora de precificação
+        // da Além da Fotografia (alemdafotografia.net/calculadora):
+        //   preço = (horas × valor da hora) × (1 + margem)
+        // Sessão e edição têm valores SEPARADOS para cada tipo de trabalho.
+        // O cliente só escolhe tipo e duração; o resto fica escondido aqui.
+        (function () {
+            // ---- Ajuste os valores aqui ----
+            const MARGEM = 0.35;          // margem de lucro sobre os custos (35%)
+            const ARREDONDAR_PARA = 10;   // preços arredondados para múltiplos de R$ 10
+
+            // Deslocamento (escondido do cliente). Com 0 km, não entra no cálculo.
+            const DISTANCIA_KM = 0;       // km de ida e volta
+            const VALOR_KM = 0.90;        // R$ por km
+
+            // valorHora       = R$ por hora de sessão (fotografando)
+            // valorEdicaoHora = R$ de edição para cada hora de sessão
+            //                   (esportes é mais barato porque a edição é automatizada)
+            const SERVICOS = {
+                retratos: { nome: "Retratos", min: 1, max: 4,  padrao: 2, valorHora: 150, valorEdicaoHora: 45,
+                            desc: "Ensaio com iluminação de estúdio no local." },
+                eventos:  { nome: "Eventos",  min: 2, max: 12, padrao: 4, valorHora: 170, valorEdicaoHora: 45,
+                            desc: "Cobertura completa de congressos, feiras e celebrações." },
+                esportes: { nome: "Esportes", min: 2, max: 10, padrao: 3, valorHora: 170, valorEdicaoHora: 25,
+                            desc: "Ação congelada em alta velocidade e cobertura de pódios." }
+            };
+
+            const el = function (id) { return document.getElementById(id); };
+            const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+            const arredondar = function (v) { return Math.round(v / ARREDONDAR_PARA) * ARREDONDAR_PARA; };
+
+            const estado = { tipo: "retratos" };
+            const range = el("simRange");
+
+            function montarTipos() {
+                const caixa = el("simTipos");
+                Object.keys(SERVICOS).forEach(function (chave) {
+                    const b = document.createElement("button");
+                    b.type = "button";
+                    b.className = "sim-tipo";
+                    b.dataset.tipo = chave;
+                    b.textContent = SERVICOS[chave].nome;
+                    b.addEventListener("click", function () { escolherTipo(chave); });
+                    caixa.appendChild(b);
+                });
+            }
+
+            function escolherTipo(chave) {
+                estado.tipo = chave;
+                const s = SERVICOS[chave];
+
+                range.min = s.min;
+                range.max = s.max;
+                range.value = s.padrao;
+
+                el("simDesc").textContent = s.desc;
+                el("simUnidade").textContent = "horas";
+                el("simMin").textContent = "Mín. " + s.min + " " + (s.min === 1 ? "hora" : "horas");
+                el("simMax").textContent = "Máx. " + s.max + " horas";
+
+                document.querySelectorAll(".sim-tipo").forEach(function (b) {
+                    const ativo = b.dataset.tipo === chave;
+                    b.classList.toggle("ativo", ativo);
+                    b.setAttribute("aria-pressed", ativo);
+                });
+
+                atualizar();
+            }
+
+            function calcular() {
+                const s = SERVICOS[estado.tipo];
+                const horas = parseInt(range.value, 10);
+                const fator = 1 + MARGEM;
+                const itens = [];
+
+                const sessao = arredondar(horas * s.valorHora * fator);
+                itens.push({ rotulo: "Sessão fotográfica (" + horas + "h)", valor: sessao });
+
+                const edicao = arredondar(horas * s.valorEdicaoHora * fator);
+                itens.push({ rotulo: "Edição e entrega das fotos", valor: edicao });
+
+                if (DISTANCIA_KM > 0) {
+                    itens.push({ rotulo: "Deslocamento", valor: arredondar(DISTANCIA_KM * VALOR_KM * fator) });
+                }
+
+                const total = itens.reduce(function (soma, i) { return soma + i.valor; }, 0);
+                return { itens: itens, total: total, horas: horas };
+            }
+
+            function atualizar() {
+                const s = SERVICOS[estado.tipo];
+                const r = calcular();
+
+                el("simQtd").textContent = r.horas;
+                const pct = ((r.horas - s.min) / (s.max - s.min)) * 100;
+                range.style.setProperty("--p", pct + "%");
+
+                const lista = el("simItens");
+                lista.innerHTML = "";
+                r.itens.forEach(function (i) {
+                    const li = document.createElement("li");
+                    const a = document.createElement("span");
+                    a.textContent = i.rotulo;
+                    const b = document.createElement("span");
+                    b.textContent = moeda.format(i.valor);
+                    li.appendChild(a);
+                    li.appendChild(b);
+                    lista.appendChild(li);
+                });
+
+                el("simTotal").textContent = moeda.format(r.total);
+            }
+
+            montarTipos();
+            range.addEventListener("input", atualizar);
+            escolherTipo("retratos");
+        })();
+
+    </script>
+
+    <script>
+
+        // Área do cliente: o cliente digita só a SENHA da sessão e cai direto na
+        // galeria. A senha é enviada ao Worker, que confere e devolve a sessão
+        // (veja desbloquearSessao em dados.js). Nada é listado nem baixado antes
+        // de acertar a senha.
+        (function () {
+            const overlay = document.getElementById("cliOverlay");
+            const campo = document.getElementById("cliCampo");
+            const input = document.getElementById("cliSenha");
+            const erro = document.getElementById("cliErro");
+            const escolha = document.getElementById("cliEscolha");
+            const btn = document.getElementById("cliBtn");
+            const form = document.getElementById("cliForm");
+            const abrir = document.getElementById("btnCliente");
+            const fechar = document.getElementById("cliFechar");
+            const textoBtn = btn.textContent;
+
+            let ultimoFoco = null;
+            let senhaDigitada = "";
+
+            function mostrarErro(msg) {
+                erro.textContent = msg;
+                campo.classList.toggle("erro", !!msg);
+            }
+
+            function limparEscolha() {
+                escolha.hidden = true;
+                escolha.innerHTML = "";
+            }
+
+            function abrirModal() {
+                ultimoFoco = document.activeElement;
+                overlay.hidden = false;
+                document.body.style.overflow = "hidden";
+                requestAnimationFrame(function () { overlay.classList.add("aberto"); });
+                input.focus();
+            }
+
+            function fecharModal() {
+                overlay.classList.remove("aberto");
+                document.body.style.overflow = "";
+                setTimeout(function () { overlay.hidden = true; }, 250);
+                input.value = "";
+                senhaDigitada = "";
+                mostrarErro("");
+                limparEscolha();
+                btn.hidden = false;
+                btn.disabled = true;
+                if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
+            }
+
+            // Guarda a sessão já aberta (só nesta aba, até expirar) para a galeria
+            // não pedir a senha de novo, e vai para ela.
+            function entrar(sessao) {
+                guardarSessaoDesbloqueada(sessao);
+                window.location.href = "galeria.html?sessao=" + encodeURIComponent(sessao.slug);
+            }
+
+            abrir.addEventListener("click", abrirModal);
+            fechar.addEventListener("click", fecharModal);
+            overlay.addEventListener("click", function (e) {
+                if (e.target === overlay) fecharModal();
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (overlay.hidden) return;
+                if (e.key === "Escape") { fecharModal(); return; }
+                if (e.key === "Tab") {
+                    const itens = overlay.querySelectorAll("button:not(:disabled):not([hidden]), input");
+                    if (!itens.length) return;
+                    const primeiro = itens[0];
+                    const ultimo = itens[itens.length - 1];
+                    if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
+                    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+                }
+            });
+
+            input.addEventListener("input", function () {
+                mostrarErro("");
+                limparEscolha();
+                btn.hidden = false;
+                btn.disabled = !input.value;
+            });
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                if (!input.value) return;
+
+                btn.disabled = true;
+                btn.textContent = "Buscando...";
+                mostrarErro("");
+                limparEscolha();
+
+                try {
+                    senhaDigitada = input.value;
+                    const resposta = await desbloquearSessao(senhaDigitada);
+
+                    if (resposta.ok && !resposta.varias) {
+                        entrar(resposta.sessao);
+                        return;
+                    }
+
+                    if (resposta.ok && resposta.varias) {
+                        // Mais de uma sessão usa a mesma senha: deixa o cliente escolher.
+                        const titulo = document.createElement("div");
+                        titulo.className = "cli-escolha-titulo";
+                        titulo.textContent = "Escolha a sessão";
+                        escolha.appendChild(titulo);
+                        resposta.sessoes.forEach(function (s) {
+                            const b = document.createElement("button");
+                            b.type = "button";
+                            b.className = "cli-opcao";
+                            b.textContent = s.titulo || s.slug;
+                            b.addEventListener("click", async function () {
+                                b.disabled = true;
+                                try {
+                                    const escolhida = await desbloquearSessao(senhaDigitada, s.slug);
+                                    if (escolhida.ok && escolhida.sessao) { entrar(escolhida.sessao); return; }
+                                    mostrarErro("Não foi possível abrir esta sessão. Digite a senha de novo.");
+                                } catch (err) {
+                                    mostrarErro("Não foi possível buscar agora. Tente novamente em instantes.");
+                                }
+                                b.disabled = false;
+                            });
+                            escolha.appendChild(b);
+                        });
+                        escolha.hidden = false;
+                        btn.hidden = true;
+                        escolha.querySelector("button").focus();
+                        return;
+                    }
+
+                    mostrarErro("Senha incorreta. Confira o que você recebeu.");
+                } catch (err) {
+                    mostrarErro("Não foi possível buscar agora. Tente novamente em instantes.");
+                }
+
+                btn.textContent = textoBtn;
+                btn.disabled = !input.value;
+                input.focus();
+            });
+        })();
+
+    </script>
+
+</body>
+</html>

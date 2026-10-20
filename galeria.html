@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria | Sheldon Dias Fotografia</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <!-- Biblioteca usada só nas sessões com senha, para montar o .zip com
+         todas as fotos direto no navegador antes de baixar. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+        }
+
+        img {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            background: rgba(15, 15, 15, 0.75);
+            z-index: 1000;
+        }
+
+        nav h1 {
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+        }
+
+        nav h1 a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.7;
+        }
+
+        .galeria-header {
+            padding: 160px 10% 60px;
+            border-bottom: 1px solid #222;
+        }
+
+        .voltar {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+            transition: 0.3s;
+        }
+
+        .voltar:hover {
+            color: white;
+        }
+
+        .galeria-eyebrow {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 14px;
+        }
+
+        .galeria-header h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .galeria-meta {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            color: #bdbdbd;
+            font-size: 0.9rem;
+        }
+
+        .galeria-meta strong {
+            display: block;
+            color: #666;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .galeria-grid {
+            padding: 60px 10% 120px;
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        .galeria-coluna {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .galeria-grid figure {
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 0;
+        }
+
+        .galeria-grid img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: 0.5s;
+        }
+
+        .galeria-grid figure:hover img {
+            transform: scale(1.03);
+        }
+
+        .vazio {
+            padding: 200px 10%;
+            text-align: center;
+            color: #888;
+        }
+
+        .vazio a {
+            color: white;
+        }
+
+        .senha-tela {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8%;
+        }
+
+        .senha-caixa {
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+        }
+
+        .senha-caixa .galeria-eyebrow {
+            justify-content: center;
+        }
+
+        .senha-caixa h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .senha-caixa p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .senha-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .senha-form input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            letter-spacing: 2px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .senha-form input:focus {
+            border-color: #666;
+        }
+
+        .senha-form button {
+            padding: 14px 16px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            color: #0f0f0f;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .senha-form button:hover {
+            opacity: 0.85;
+        }
+
+        .senha-erro {
+            color: #d97757;
+            font-size: 0.85rem;
+            min-height: 18px;
+        }
+
+        .foto-baixar {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(15, 15, 15, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .galeria-grid figure {
+            position: relative;
+        }
+
+        .galeria-grid figure:hover .foto-baixar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .foto-baixar:hover {
+            background: white;
+        }
+
+        .foto-baixar:hover svg {
+            stroke: #0f0f0f;
+        }
+
+        .foto-baixar svg {
+            width: 16px;
+            height: 16px;
+            stroke: white;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+
+            .foto-baixar {
+                opacity: 1;
+                transform: none;
+            }
+
+        }
+
+        .baixar-todas {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            color: #0f0f0f;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .baixar-todas:hover {
+            opacity: 0.85;
+        }
+
+        .baixar-todas:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .baixar-todas svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid #222;
+            color: #888;
+        }
+
+        footer a {
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+
+            nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .galeria-header {
+                padding-top: 190px;
+            }
+
+            .galeria-header h2 {
+                font-size: 2.2rem;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <h1><a href="index.html">SHELDON DIAS</a></h1>
+
+        <ul>
+            <li><a href="esportes.html">Esportes</a></li>
+            <li><a href="eventos.html">Eventos</a></li>
+            <li><a href="retratos.html">Retratos</a></li>
+        </ul>
+    </nav>
+
+    <div id="conteudo"></div>
+
+    <footer>
+        © 2026 Sheldon Dias — Todos os direitos reservados. · <a href="index.html">Voltar ao início</a>
+    </footer>
+
+    <script src="dados.js"></script>
+    <script>
+
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get("sessao");
+        const conteudo = document.getElementById("conteudo");
+
+        let sessao = null;
+
+        // Tela de senha. Não mostra nome de cliente nem título: antes da senha
+        // certa o navegador não recebe nenhum dado da sessão. A senha é conferida
+        // pelo Worker (veja desbloquearSessao em dados.js).
+        function renderizarTelaSenha() {
+            document.title = "Galeria protegida | Sheldon Dias Fotografia";
+
+            conteudo.innerHTML = `
+                <div class="senha-tela">
+                    <div class="senha-caixa">
+                        <h2>Galeria protegida</h2>
+                        <p>Digite a senha que você recebeu para ver e baixar as fotos desta sessão.</p>
+                        <form class="senha-form" id="form-senha">
+                            <input type="password" id="input-senha" placeholder="Senha" autocomplete="off" autofocus>
+                            <div class="senha-erro" id="erro-senha"></div>
+                            <button type="submit">Entrar</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            const form = document.getElementById("form-senha");
+            const input = document.getElementById("input-senha");
+            const erro = document.getElementById("erro-senha");
+            const botao = form.querySelector("button");
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                if (!input.value) return;
+
+                botao.disabled = true;
+                erro.textContent = "";
+
+                try {
+                    const resposta = await desbloquearSessao(input.value, slug);
+                    if (resposta.ok) {
+                        sessao = resposta.sessao;
+                        guardarSessaoDesbloqueada(sessao);
+                        renderizarGaleria();
+                        return;
+                    }
+                    erro.textContent = "Senha incorreta. Tente novamente.";
+                    input.value = "";
+                } catch (erroRede) {
+                    erro.textContent = "Não foi possível verificar agora. Tente novamente em instantes.";
+                }
+
+                botao.disabled = false;
+                input.focus();
+            });
+        }
+
+        // Guardam a grade e a quantidade de colunas em uso, para poder
+        // remontar a distribuição das fotos se a janela mudar de faixa
+        // (3 colunas em telas largas, 2 em médias, 1 em telas pequenas).
+        let gridAtual = null;
+        let colunasAtuais = 0;
+
+        function numColunasResponsivas() {
+            const largura = window.innerWidth;
+            if (largura <= 600) return 1;
+            if (largura <= 1100) return 2;
+            return 3;
+        }
+
+        // Descobre a proporção altura/largura real de uma foto (carregando-a
+        // uma vez em memória) para estimar sua altura na coluna. Se a foto
+        // falhar ao carregar, usa uma proporção padrão (paisagem 4:3).
+        function estimarProporcao(url) {
+            return new Promise(function (resolve) {
+                const img = new Image();
+                img.onload = function () {
+                    if (img.naturalWidth && img.naturalHeight) {
+                        resolve(img.naturalHeight / img.naturalWidth);
+                    } else {
+                        resolve(0.75);
+                    }
+                };
+                img.onerror = function () { resolve(0.75); };
+                img.src = url;
+            });
+        }
+
+        // Monta a grade como um masonry de verdade: em vez de deixar o CSS
+        // distribuir as fotos em colunas (o que cria "buracos" quando uma
+        // foto grande não cabe e é empurrada inteira para a coluna
+        // seguinte), cada foto é colocada, uma a uma, na coluna que estiver
+        // mais curta no momento — assim as colunas terminam sempre
+        // equilibradas, sem espaço vazio sobrando no meio.
+        async function montarGradeFotos(sessao, grid) {
+            const numColunas = numColunasResponsivas();
+            colunasAtuais = numColunas;
+
+            grid.innerHTML = "";
+            const colunas = [];
+            const alturas = new Array(numColunas).fill(0);
+            for (let i = 0; i < numColunas; i++) {
+                const coluna = document.createElement("div");
+                coluna.className = "galeria-coluna";
+                grid.appendChild(coluna);
+                colunas.push(coluna);
+            }
+
+            const proporcoes = await Promise.all(
+                sessao.fotos.map(function (foto) { return estimarProporcao(foto.url); })
+            );
+
+            // Se a janela mudou de faixa enquanto as proporções carregavam,
+            // não monta com números desatualizados — deixa o resize seguinte
+            // (ou a chamada já em andamento) cuidar disso.
+            if (grid !== gridAtual || numColunas !== colunasAtuais) return;
+
+            sessao.fotos.forEach(function (foto, indice) {
+                const figure = document.createElement("figure");
+
+                const img = document.createElement("img");
+                img.src = foto.url;
+                img.loading = "lazy";
+                img.alt = sessao.titulo;
+                figure.appendChild(img);
+
+                if (sessao.protegida) {
+                    const baixar = document.createElement("a");
+                    baixar.className = "foto-baixar";
+                    baixar.href = foto.download;
+                    baixar.download = sessao.slug + "-" + String(indice + 1).padStart(3, "0") + ".jpg";
+                    baixar.target = "_blank";
+                    baixar.rel = "noopener";
+                    baixar.title = "Baixar esta foto";
+                    baixar.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
+                    figure.appendChild(baixar);
+                }
+
+                let colunaMenor = 0;
+                for (let i = 1; i < numColunas; i++) {
+                    if (alturas[i] < alturas[colunaMenor]) colunaMenor = i;
+                }
+                colunas[colunaMenor].appendChild(figure);
+                alturas[colunaMenor] += proporcoes[indice] || 0.75;
+            });
+        }
+
+        let redimensionarTimeout = null;
+        window.addEventListener("resize", function () {
+            clearTimeout(redimensionarTimeout);
+            redimensionarTimeout = setTimeout(function () {
+                if (gridAtual && sessao && sessao.fotos.length && numColunasResponsivas() !== colunasAtuais) {
+                    montarGradeFotos(sessao, gridAtual);
+                }
+            }, 200);
+        });
+
+        function renderizarGaleria() {
+
+            document.title = sessao.titulo + " — " + sessao.cliente + " | Sheldon Dias Fotografia";
+
+            conteudo.innerHTML = "";
+
+            const header = document.createElement("div");
+            header.className = "galeria-header";
+            header.innerHTML = `
+                <a class="voltar" href="${sessao.categoriaHref}">← Voltar para ${sessao.categoria}</a>
+                <div class="galeria-eyebrow">${sessao.cliente}</div>
+                <h2>${sessao.titulo}</h2>
+                <div class="galeria-meta">
+                    <div><strong>Data</strong>${sessao.data}</div>
+                    <div><strong>Local</strong>${sessao.local}</div>
+                    <div><strong>Fotos</strong>${sessao.fotos.length}</div>
+                </div>
+                ${sessao.protegida ? `
+                <button type="button" class="baixar-todas" id="btn-baixar-todas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                    Baixar todas as fotos (.zip)
+                </button>` : ""}
+            `;
+
+            const grid = document.createElement("div");
+            grid.className = "galeria-grid";
+
+            conteudo.appendChild(header);
+            conteudo.appendChild(grid);
+
+            gridAtual = grid;
+            montarGradeFotos(sessao, grid);
+
+            const btnBaixarTodas = document.getElementById("btn-baixar-todas");
+            if (btnBaixarTodas) {
+                btnBaixarTodas.addEventListener("click", function () {
+                    baixarTodas(sessao, btnBaixarTodas);
+                });
+            }
+        }
+
+        // Baixa todas as fotos da sessão como UM ÚNICO arquivo .zip, direto
+        // do site: busca cada foto através do Worker (que tem permissão de
+        // CORS), monta o zip no navegador e dispara um único download no
+        // final. Se alguma foto não tiver ID do Drive (ex: link direto de
+        // outro serviço), cai no método antigo (baixar uma por uma) só
+        // para essas, como reserva.
+        async function baixarTodas(sessaoAtual, botao) {
+            const fotos = sessaoAtual.fotos;
+            if (!fotos.length) return;
+
+            const comId = fotos.filter(function (f) { return f.id && f.proxy; });
+            const semId = fotos.filter(function (f) { return !(f.id && f.proxy); });
+
+            botao.disabled = true;
+            const textoOriginal = botao.innerHTML;
+
+            try {
+                if (comId.length) {
+                    const zip = new JSZip();
+
+                    // Baixa várias fotos ao mesmo tempo (em vez de uma por vez).
+                    // CONCORRENCIA = quantas fotos baixam simultaneamente.
+                    const CONCORRENCIA = 5;
+                    const blobs = new Array(comId.length);
+                    let proxima = 0;
+                    let concluidas = 0;
+                    let falhou = false;
+
+                    botao.innerHTML = "Preparando 0 de " + comId.length + "...";
+
+                    async function trabalhador() {
+                        while (!falhou) {
+                            const i = proxima++;
+                            if (i >= comId.length) return;
+
+                            try {
+                                const resposta = await fetch(comId[i].proxy);
+                                if (!resposta.ok) {
+                                    throw new Error("Falha ao baixar a foto " + (i + 1) + " (" + resposta.status + ")");
+                                }
+                                blobs[i] = await resposta.blob();
+                            } catch (e) {
+                                falhou = true; // faz os outros trabalhadores pararem
+                                throw e;
+                            }
+
+                            concluidas++;
+                            botao.innerHTML = "Preparando " + concluidas + " de " + comId.length + "...";
+                        }
+                    }
+
+                    await Promise.all(
+                        Array.from({ length: Math.min(CONCORRENCIA, comId.length) }, trabalhador)
+                    );
+
+                    // Monta o zip na ordem original das fotos.
+                    for (let i = 0; i < comId.length; i++) {
+                        const nomeArquivo = sessaoAtual.slug + "-" + String(i + 1).padStart(3, "0") + ".jpg";
+                        zip.file(nomeArquivo, blobs[i]);
+                    }
+
+                    botao.innerHTML = "Compactando...";
+                    // STORE = só empacota, sem comprimir. JPEG já é comprimido, então
+                    // comprimir de novo gasta tempo e quase não reduz o tamanho.
+                    const conteudoZip = await zip.generateAsync({ type: "blob", compression: "STORE" });
+
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(conteudoZip);
+                    link.download = sessaoAtual.slug + "-fotos.zip";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }
+
+                // Reserva: fotos sem ID do Drive (links diretos de outro
+                // serviço) não passam pelo Worker — baixa cada uma direto.
+                for (let i = 0; i < semId.length; i++) {
+                    const link = document.createElement("a");
+                    link.href = semId[i].download;
+                    link.download = sessaoAtual.slug + "-extra-" + String(i + 1).padStart(3, "0") + ".jpg";
+                    link.target = "_blank";
+                    link.rel = "noopener";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    await new Promise(function (resolve) { setTimeout(resolve, 600); });
+                }
+            } catch (erro) {
+                alert("Não foi possível preparar o arquivo para download: " + erro.message);
+            } finally {
+                botao.innerHTML = textoOriginal;
+                botao.disabled = false;
+            }
+        }
+
+        function renderizarNaoEncontrada() {
+            conteudo.innerHTML = `
+                <div class="vazio">
+                    <h2>Sessão não encontrada</h2>
+                    <p style="margin-top:16px;">Escolha uma categoria para ver as sessões disponíveis:
+                    <a href="esportes.html">Esportes</a>, <a href="eventos.html">Eventos</a> ou <a href="retratos.html">Retratos</a>.</p>
+                </div>
+            `;
+        }
+
+        function renderizarErro() {
+            conteudo.innerHTML = `
+                <div class="vazio">
+                    <h2>Não foi possível carregar</h2>
+                    <p style="margin-top:16px;">Verifique se o link da planilha está configurado em dados.js.</p>
+                </div>
+            `;
+        }
+
+        async function iniciar() {
+            if (!slug) {
+                renderizarNaoEncontrada();
+                return;
+            }
+
+            // Sessão com senha que já foi aberta nesta aba (e ainda não expirou).
+            sessao = lerSessaoDesbloqueada(slug);
+            if (sessao) {
+                renderizarGaleria();
+                return;
+            }
+
+            let todas;
+            try {
+                todas = await buscarSessoes();
+            } catch (erro) {
+                renderizarErro();
+                return;
+            }
+
+            // A lista só contém sessões públicas. Qualquer outro endereço cai na
+            // tela de senha — inclusive os inexistentes, para que ninguém consiga
+            // descobrir quais sessões privadas existem.
+            sessao = todas.find(function (s) { return s.slug === slug && !s.protegida; }) || null;
+
+            if (!sessao) {
+                renderizarTelaSenha();
+                return;
+            }
+
+            if (!sessao.fotos.length && sessao._linkFotos) {
+                try {
+                    await resolverFotos(sessao);
+                } catch (erro) {
+                    renderizarErro();
+                    return;
+                }
+            }
+
+            renderizarGaleria();
+        }
+
+        iniciar();
+
+    </script>
+
+    <script>
+        document.addEventListener("contextmenu", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+        document.addEventListener("dragstart", function (e) {
+            if (e.target.tagName === "IMG") e.preventDefault();
+        });
+    </script>
+
+</body>
+</html>

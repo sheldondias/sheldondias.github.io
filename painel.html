@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta name="color-scheme" content="dark">
+    <title>Painel das sessões privadas | Sheldon Dias Fotografia</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dk8wuuwx/image/upload/v1786150154/icone_uk45xu.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!--
+        painel.html
+        -----------
+        Painel privado: reúne as sessões com senha, mostra a senha de cada
+        uma e gera os códigos para a planilha.
+
+        O QUE PROTEGE AS SENHAS
+        - Este arquivo não contém nenhuma senha, nem verificação do tipo
+          "se digitou X". Tudo depende da senha do painel.
+        - A senha do painel nunca é enviada a lugar nenhum. Dela o navegador
+          calcula (PBKDF2-SHA256, 600 mil iterações) duas coisas separadas:
+          uma prova de acesso, que o Worker confere contra o secret
+          PAINEL_VERIFICADOR, e uma chave AES que decifra a coluna
+          "senha_cifrada" da planilha. Sem a senha do painel, quem tem o
+          código-fonte e a planilha só vê texto embaralhado.
+        - Os dados completos das sessões só saem do Worker para quem apresenta
+          a prova de acesso certa.
+        - Nada é gravado no navegador (nem localStorage, nem cookie).
+    -->
+
+    <style>
+        :root {
+            --bg: #070707;
+            --surface: #0d0d0d;
+            --surface-2: #121212;
+            --text: #f6f4ef;
+            --muted: rgba(246, 244, 239, 0.58);
+            --line: rgba(255, 255, 255, 0.10);
+            --line-strong: rgba(255, 255, 255, 0.18);
+            --ok: #93d3a2;
+            --aviso: #e6bd75;
+            --erro: #ec9494;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { background: var(--bg); }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 18% 12%, rgba(255,255,255,.035), transparent 30rem),
+                var(--bg);
+            color: var(--text);
+            font-family: "Manrope", "Montserrat", Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: #f4f0e8; color: #090909; }
+
+        :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+        a { color: var(--text); text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+        a:hover { text-decoration-color: var(--text); }
+
+        .pagina {
+            width: min(980px, calc(100vw - 48px));
+            margin: 0 auto;
+            padding: 36px 0 96px;
+        }
+
+        h1, h2 {
+            font-family: "Cormorant Garamond", Georgia, serif;
+            font-weight: 500;
+            line-height: 1.05;
+        }
+
+        h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); letter-spacing: -0.01em; }
+
+        .muted { color: var(--muted); }
+
+        /* ---------- Voltar ao site (fica fora de #app, então aparece em todas as telas) ---------- */
+
+        .voltar {
+            width: min(980px, calc(100vw - 48px));
+            margin: 0 auto;
+            padding-top: 28px;
+        }
+
+        .btn-voltar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-voltar svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+        /* ---------- Campos e botões ---------- */
+
+        label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="search"] {
+            width: 100%;
+            padding: 13px 15px;
+            background: var(--surface-2);
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            color: var(--text);
+            font: inherit;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus { border-color: rgba(255,255,255,.5); }
+        input[readonly] { font-family: var(--mono); font-size: 0.78rem; color: #c9c6bf; }
+
+        .btn {
+            padding: 11px 16px;
+            background: transparent;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn:hover { border-color: var(--text); }
+        .btn[disabled] { opacity: .5; cursor: progress; }
+
+        .btn-principal {
+            background: #f4f0e8;
+            border-color: #f4f0e8;
+            color: #090909;
+        }
+
+        .btn-principal:hover { background: #fff; }
+
+        .btn-pequeno { padding: 7px 12px; font-size: 0.78rem; }
+
+        .erro {
+            min-height: 22px;
+            margin: 10px 0 14px;
+            color: var(--erro);
+            font-size: 0.85rem;
+        }
+
+        .campo-acao { display: flex; gap: 10px; }
+        .campo-acao input { flex: 1; min-width: 0; }
+
+        /* ---------- Tela de bloqueio ---------- */
+
+        .bloqueio {
+            min-height: calc(100vh - 220px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 440px;
+        }
+
+        .bloqueio h1 { margin-bottom: 14px; }
+        .bloqueio .texto { color: var(--muted); margin-bottom: 34px; }
+        .bloqueio .campo { margin-bottom: 18px; }
+        .dica { color: var(--muted); font-size: 0.8rem; margin-top: 8px; }
+
+        /* ---------- Painel ---------- */
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 24px;
+            flex-wrap: wrap;
+            padding-bottom: 28px;
+        }
+
+        .topo p { margin-top: 12px; }
+
+        .barra {
+            display: flex;
+            gap: 12px;
+            padding: 18px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .barra input { flex: 1; }
+
+        .ajuda {
+            margin: 4px 0 8px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .ajuda summary { cursor: pointer; padding: 8px 0; }
+        .ajuda ol { padding-left: 20px; margin: 6px 0 14px; max-width: 70ch; }
+        .ajuda li { margin-bottom: 6px; }
+        .ajuda code, .codigos code, .dica code, .config code {
+            font-family: var(--mono);
+            font-size: 0.82em;
+            color: var(--text);
+        }
+
+        .sessao {
+            display: grid;
+            grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+            gap: 24px 48px;
+            padding: 34px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .sessao h2 { font-size: 2rem; margin: 10px 0 6px; }
+        .sessao .cliente { color: var(--muted); }
+
+        .categoria { font-size: 0.82rem; color: var(--muted); }
+
+        .selos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+        .selo {
+            display: inline-block;
+            padding: 4px 11px;
+            border: 1px solid currentColor;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .selo.ok { color: var(--ok); }
+        .selo.aviso { color: var(--aviso); }
+        .selo.erro { color: var(--erro); }
+
+        .linhas { border-top: 1px solid var(--line); }
+
+        .linha {
+            display: grid;
+            grid-template-columns: 104px minmax(0, 1fr) auto;
+            gap: 4px 14px;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .linha .rotulo { font-size: 0.8rem; color: var(--muted); }
+        .linha .valor { min-width: 0; overflow-wrap: anywhere; }
+        .linha .acoes { display: flex; gap: 8px; }
+
+        .senha-valor {
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+        }
+
+        .cadastro, .token-caixa { margin-top: 18px; }
+        .cadastro .erro { min-height: 0; margin: 8px 0 0; }
+        .token-caixa p { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+
+
+        .codigos { margin-top: 18px; }
+        .codigos p { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+        .codigos .aviso-texto { color: var(--aviso); }
+        .codigos .ok-texto { color: var(--ok); }
+        .codigos .item { margin-bottom: 14px; }
+        .codigos .item label { margin-bottom: 6px; }
+        .config { max-width: 640px; }
+        .config ol { padding-left: 20px; margin: 0 0 22px; color: var(--muted); }
+        .config li { margin-bottom: 6px; }
+        .geral { margin: 4px 0 8px; }
+        .geral form { max-width: 560px; padding-bottom: 14px; }
+        .geral .campo { margin-bottom: 14px; }
+        .acoes-form { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .vazio { padding: 48px 0; color: var(--muted); border-top: 1px solid var(--line); }
+
+        @media (max-width: 760px) {
+            .voltar { width: calc(100vw - 32px); padding-top: 20px; }
+            .pagina { width: calc(100vw - 32px); padding-top: 28px; }
+            .sessao { grid-template-columns: 1fr; gap: 8px; }
+            .linha { grid-template-columns: 1fr; }
+            .linha .acoes { margin-top: 4px; }
+            .campo-acao { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="voltar" aria-label="Navegação do painel">
+        <a class="btn btn-voltar" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            Voltar ao site
+        </a>
+    </nav>
+
+    <main class="pagina" id="app">
+        <p class="muted">Carregando…</p>
+    </main>
+
+    <noscript>
+        <p style="padding:48px">Este painel precisa de JavaScript para funcionar.</p>
+    </noscript>
+
+    <!-- dados.js fornece urlBaseWorker(): o endereço do Worker. -->
+    <script src="dados.js"></script>
+    <script>
+    (function () {
+        "use strict";
+
+        // Mudar qualquer parâmetro de criptografia abaixo invalida os códigos
+        // já gravados na planilha (seria preciso gerá-los de novo).
+        const ITERACOES = 600000;
+        const codificador = new TextEncoder();
+        const SAL_CIFRA = codificador.encode("sheldondias.com.br|painel-privado|cifra|v2");
+        const SAL_AUTH = codificador.encode("sheldondias.com.br|painel-privado|auth|v2");
+        const VERSAO = "v1";
+        const TEMPO_INATIVO = 5 * 60 * 1000;   // trava sozinho após 5 min sem uso
+        const MIN_SENHA_PAINEL = 12;
+        const MIN_SENHA_SESSAO = 8;
+
+        const app = document.getElementById("app");
+
+        let sessoes = [];
+        let chave = null;       // chave AES (CryptoKey não extraível), só em memória
+        let authHex = null;     // prova de acesso ao Worker, só em memória
+        let avaliacoes = {};    // índice da sessão -> { estado, senha, hash, token, confere }
+        let visiveis = new Set();
+        let busca = "";
+        let timerInativo = null;
+
+        // ---------------------------------------------------------------
+        // Utilidades
+        // ---------------------------------------------------------------
+
+        function esc(t) {
+            return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        function linkSeguro(u) { return /^https?:\/\//i.test(u) ? u : ""; }
+
+        function urlGaleria(slug) {
+            const u = new URL("galeria.html", window.location.href);
+            u.search = "sessao=" + encodeURIComponent(slug);
+            u.hash = "";
+            return u.href;
+        }
+
+        async function copiar(texto, botao) {
+            const original = botao.textContent;
+            try {
+                await navigator.clipboard.writeText(texto);
+                botao.textContent = "Copiado";
+            } catch (e) {
+                botao.textContent = "Não foi possível copiar";
+            }
+            setTimeout(function () { botao.textContent = original; }, 1600);
+        }
+
+        // Senha forte e fácil de ditar: 12 caracteres sem letras ambíguas (l, o, 0, 1).
+        function senhaForte() {
+            const alfabeto = "abcdefghijkmnpqrstuvwxyz23456789"; // 32 símbolos
+            const b = crypto.getRandomValues(new Uint8Array(12));
+            let t = "";
+            for (let i = 0; i < 12; i++) {
+                if (i && i % 4 === 0) t += "-";
+                t += alfabeto[b[i] % 32];
+            }
+            return t;
+        }
+
+        // ---------------------------------------------------------------
+        // Criptografia (Web Crypto, nativa do navegador)
+        // ---------------------------------------------------------------
+
+        function paraHex(buffer) {
+            return Array.from(new Uint8Array(buffer))
+                .map(function (b) { return b.toString(16).padStart(2, "0"); })
+                .join("");
+        }
+
+        function paraB64(bytes) {
+            let s = "";
+            bytes.forEach(function (b) { s += String.fromCharCode(b); });
+            return btoa(s);
+        }
+
+        function deB64(str) {
+            return Uint8Array.from(atob(str), function (c) { return c.charCodeAt(0); });
+        }
+
+        // Da senha do painel saem duas coisas independentes:
+        //  - auth:  prova de acesso enviada ao Worker (hex)
+        //  - chave: chave AES que decifra a coluna senha_cifrada
+        async function derivarDaSenha(senhaPainel) {
+            const base = await crypto.subtle.importKey(
+                "raw", codificador.encode(senhaPainel), "PBKDF2", false, ["deriveBits", "deriveKey"]
+            );
+            const resultado = await Promise.all([
+                crypto.subtle.deriveBits(
+                    { name: "PBKDF2", salt: SAL_AUTH, iterations: ITERACOES, hash: "SHA-256" }, base, 256
+                ),
+                crypto.subtle.deriveKey(
+                    { name: "PBKDF2", salt: SAL_CIFRA, iterations: ITERACOES, hash: "SHA-256" },
+                    base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+                )
+            ]);
+            return { auth: paraHex(resultado[0]), chave: resultado[1] };
+        }
+
+        // Valor para o secret PAINEL_VERIFICADOR do Worker.
+        async function verificadorDe(auth) {
+            return paraHex(await crypto.subtle.digest("SHA-256", codificador.encode(auth)));
+        }
+
+        async function cifrar(k, texto) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const dados = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, k, codificador.encode(texto));
+            return VERSAO + ":" + paraB64(iv) + ":" + paraB64(new Uint8Array(dados));
+        }
+
+        async function decifrar(k, token) {
+            const partes = token.trim().split(":");
+            if (partes.length !== 3 || partes[0] !== VERSAO) throw new Error("formato");
+            const dados = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: deB64(partes[1]) }, k, deB64(partes[2])
+            );
+            return new TextDecoder().decode(dados);
+        }
+
+        // ---------------------------------------------------------------
+        // Comunicação com o Worker
+        // ---------------------------------------------------------------
+
+        async function api(acao, dados, auth) {
+            const cabecalhos = { "Content-Type": "application/json" };
+            if (auth) cabecalhos["X-Painel-Auth"] = auth;
+
+            const resposta = await fetch(urlBaseWorker() + "/admin", {
+                method: "POST",
+                headers: cabecalhos,
+                body: JSON.stringify(Object.assign({ acao: acao }, dados || {}))
+            });
+
+            let corpo = {};
+            try { corpo = await resposta.json(); } catch (e) {}
+
+            if (!resposta.ok) {
+                const erro = new Error(corpo.erro || ("Erro " + resposta.status));
+                erro.status = resposta.status;
+                throw erro;
+            }
+            return corpo;
+        }
+
+        // Tenta ler a senha de cada sessão e confere com a que está valendo.
+        async function avaliar() {
+            const resultado = {};
+            const itens = [];
+            const indices = [];
+
+            for (const s of sessoes) {
+                if (s.formato === "invalido") { resultado[s.i] = { estado: "hash-invalido" }; continue; }
+                if (!s.token) { resultado[s.i] = { estado: "sem-codigo" }; continue; }
+                try {
+                    const senha = await decifrar(chave, s.token);
+                    itens.push({ slug: s.slug, senha: senha });
+                    indices.push(s.i);
+                    resultado[s.i] = { estado: "ilegivel", senha: senha };
+                } catch (e) {
+                    resultado[s.i] = { estado: "ilegivel" };
+                }
+            }
+
+            if (itens.length) {
+                const r = await api("conferir", { itens: itens }, authHex);
+                indices.forEach(function (i, n) {
+                    resultado[i] = r.resultados[n]
+                        ? { estado: "ok", senha: resultado[i].senha }
+                        : { estado: "desatualizada" };
+                });
+            }
+            return resultado;
+        }
+
+        // Gera os dois códigos que vão para a planilha.
+        async function gerarCodigos(slug, senha) {
+            const limpa = senha.trim();
+            const r = await api("gerar", { slug: slug, senha: limpa }, authHex);
+            return { senha: limpa, hash: r.hash, confere: r.confere, token: await cifrar(chave, limpa) };
+        }
+
+        // ---------------------------------------------------------------
+        // Telas
+        // ---------------------------------------------------------------
+
+        function renderMensagem(texto, comBotao) {
+            app.innerHTML =
+                '<div class="bloqueio">' +
+                '<h1>Sessões privadas</h1>' +
+                '<p class="texto">' + esc(texto) + '</p>' +
+                (comBotao ? '<div><button class="btn btn-principal" data-acao="recarregar">Tentar de novo</button></div>' : '') +
+                '</div>';
+        }
+
+        function campoSenha(id, rotulo, autocomplete, dica) {
+            return '<div class="campo"><label for="' + id + '">' + rotulo + '</label>' +
+                '<input type="password" id="' + id + '" autocomplete="' + autocomplete + '" required>' +
+                (dica ? '<p class="dica">' + dica + '</p>' : '') + '</div>';
+        }
+
+        function renderConfiguracao() {
+            app.innerHTML =
+                '<section class="bloqueio">' +
+                '<h1>Configurar o painel</h1>' +
+                '<p class="texto">O painel ainda não foi ligado ao Worker. Crie a senha do painel: ela protege todas as outras.</p>' +
+                '<form id="form-config">' +
+                    campoSenha("mestra", "Nova senha do painel", "new-password",
+                        "Pelo menos " + MIN_SENHA_PAINEL + " caracteres. Uma frase longa é melhor que uma palavra com símbolos. Se você esquecer, não há como recuperar.") +
+                    campoSenha("mestra2", "Repita a senha", "new-password", "") +
+                    '<div class="erro" id="erro" role="alert"></div>' +
+                    '<button class="btn btn-principal" type="submit" id="enviar">Continuar</button>' +
+                '</form></section>';
+            document.getElementById("mestra").focus();
+        }
+
+        function renderSegredos(verificador, segredo) {
+            function item(nome, valor, nota) {
+                return '<div class="item"><label>Nome: <code>' + nome + '</code></label>' +
+                    '<div class="campo-acao"><input type="text" readonly value="' + esc(valor) + '" aria-label="Valor de ' + nome + '">' +
+                    '<button class="btn" data-acao="copiar-campo">Copiar</button></div>' +
+                    (nota ? '<p class="dica">' + nota + '</p>' : '') + '</div>';
+            }
+            app.innerHTML =
+                '<section class="config">' +
+                '<h1>Falta um passo no Worker</h1>' +
+                '<p class="texto muted" style="margin:14px 0 22px">Crie estes dois secrets e depois recarregue esta página. Eles não aparecem no código do site.</p>' +
+                '<ol>' +
+                    '<li>Cloudflare, Workers &amp; Pages, abra o seu Worker.</li>' +
+                    '<li>Settings, Variables and Secrets, Add.</li>' +
+                    '<li>Tipo <code>Secret</code>, com o nome e o valor abaixo. Salve e faça Deploy.</li>' +
+                '</ol>' +
+                '<div class="codigos">' +
+                    item("PAINEL_VERIFICADOR", verificador, "Confere a senha do painel. Só funciona com a senha que você acabou de criar.") +
+                    item("SEGREDO", segredo, "Sugestão aleatória. Se este secret já existir no Worker, não troque: senhas já geradas deixariam de funcionar.") +
+                '</div>' +
+                '<div style="margin-top:22px"><button class="btn btn-principal" data-acao="recarregar">Já criei, recarregar</button></div>' +
+                '</section>';
+        }
+
+        function renderBloqueio() {
+            app.innerHTML =
+                '<section class="bloqueio">' +
+                '<h1>Sessões privadas</h1>' +
+                '<p class="texto">Digite a senha do painel para ver as sessões e as senhas dos clientes.</p>' +
+                '<form id="form-bloqueio">' +
+                    campoSenha("mestra", "Senha do painel", "current-password", "") +
+                    '<div class="erro" id="erro" role="alert"></div>' +
+                    '<button class="btn btn-principal" type="submit" id="enviar">Abrir painel</button>' +
+                '</form></section>';
+            document.getElementById("mestra").focus();
+        }
+
+        function renderPainel() {
+            app.innerHTML =
+                '<header class="topo">' +
+                    '<div><h1>Sessões privadas</h1><p class="muted" id="resumo"></p></div>' +
+                    '<button class="btn" data-acao="bloquear">Bloquear painel</button>' +
+                '</header>' +
+
+                '<details class="ajuda geral"><summary>Gerar senha para uma sessão nova ou trocar a de uma existente</summary>' +
+                    '<form id="form-geral">' +
+                        '<div class="campo"><label for="g-slug">Identificador da sessão (o slug da planilha)</label>' +
+                        '<input type="text" id="g-slug" name="slug" autocomplete="off" autocapitalize="off" spellcheck="false" pattern="[A-Za-z0-9_\\-]+" required></div>' +
+                        '<div class="campo"><label for="g-senha">Senha do cliente</label>' +
+                        '<input type="text" id="g-senha" name="senha" autocomplete="off" autocapitalize="off" spellcheck="false" required>' +
+                        '<p class="dica">Mínimo de ' + MIN_SENHA_SESSAO + ' caracteres. Senhas curtas ou previsíveis (nome + ano) são fáceis de adivinhar: prefira a sugerida.</p></div>' +
+                        '<div class="acoes-form">' +
+                            '<button class="btn" type="button" data-acao="sugerir">Sugerir senha forte</button>' +
+                            '<button class="btn btn-principal" type="submit">Gerar códigos</button>' +
+                        '</div>' +
+                        '<div class="erro" role="alert"></div>' +
+                    '</form>' +
+                    '<div id="resultado-geral"></div>' +
+                '</details>' +
+
+                '<details class="ajuda"><summary>Como guardar a senha de uma sessão</summary>' +
+                    '<ol>' +
+                    '<li>Gere os códigos aqui, na própria sessão (ou no formulário acima, se ela ainda não existe).</li>' +
+                    '<li>Na planilha, cole o primeiro código na coluna <code>senha</code> e o segundo na coluna <code>senha_cifrada</code>, na linha da sessão. Crie a coluna <code>senha_cifrada</code> se ela não existir.</li>' +
+                    '<li>Avise o cliente da senha. A galeria passa a aceitar a nova senha em instantes.</li>' +
+                    '</ol>' +
+                '</details>' +
+
+                '<div class="barra"><input type="search" id="busca" placeholder="Buscar por cliente, título, local ou categoria" aria-label="Buscar sessões"></div>' +
+                '<div id="lista"></div>';
+
+            renderLista();
+        }
+
+        function selo(estado) {
+            const mapa = {
+                "ok": ["ok", "Senha disponível"],
+                "gerado": ["aviso", "Falta colar na planilha"],
+                "sem-codigo": ["aviso", "Senha não guardada"],
+                "desatualizada": ["erro", "Senha mudou na planilha"],
+                "ilegivel": ["erro", "Código ilegível"],
+                "hash-invalido": ["erro", "Coluna senha inválida"]
+            };
+            const m = mapa[estado] || mapa["sem-codigo"];
+            return '<span class="selo ' + m[0] + '">' + m[1] + '</span>';
+        }
+
+        function renderFotos(s) {
+            const bruto = s.fotos.trim();
+            if (!bruto) return '<span class="muted">Não informado</span>';
+
+            if (typeof extrairIdPastaDrive === "function" && extrairIdPastaDrive(bruto)) {
+                const href = linkSeguro(bruto);
+                return href
+                    ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">Abrir pasta no Drive</a>'
+                    : esc(bruto);
+            }
+
+            const links = bruto.split(",").map(function (f) { return f.trim(); }).filter(Boolean);
+            return '<details><summary>' + links.length + ' link' + (links.length > 1 ? 's' : '') + ' de fotos</summary>' +
+                links.map(function (l, n) {
+                    const href = linkSeguro(l);
+                    return '<div>' + (href
+                        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">Foto ' + (n + 1) + '</a>'
+                        : esc(l)) + '</div>';
+                }).join("") + '</details>';
+        }
+
+        function renderSenha(s, av, visivel) {
+            if (av.estado === "ok" || av.estado === "gerado") {
+                return '<div class="linha"><span class="rotulo">Senha</span>' +
+                    '<span class="valor senha-valor">' + (visivel ? esc(av.senha) : '••••••••••') + '</span>' +
+                    '<span class="acoes">' +
+                        '<button class="btn btn-pequeno" data-acao="mostrar" data-i="' + s.i + '" aria-pressed="' + visivel + '">' + (visivel ? 'Ocultar' : 'Mostrar') + '</button>' +
+                        '<button class="btn btn-pequeno" data-acao="copiar-senha" data-i="' + s.i + '">Copiar</button>' +
+                    '</span></div>';
+            }
+            return '<div class="linha"><span class="rotulo">Senha</span>' +
+                '<span class="valor muted">Ainda não disponível aqui</span><span></span></div>';
+        }
+
+        // Os dois códigos gerados, prontos para colar na planilha.
+        function htmlCodigos(res, slug) {
+            const situacao = res.confere === true
+                ? '<p class="ok-texto">Esta é a senha que está valendo hoje. Os códigos só atualizam o formato.</p>'
+                : res.confere === false
+                    ? '<p class="aviso-texto">Atenção: esta senha é diferente da que vale hoje. Ao colar os códigos na planilha, a senha do cliente muda.</p>'
+                    : '<p>Esta sessão ainda não tem senha na planilha.</p>';
+
+            return '<div class="codigos">' + situacao +
+                '<p>Cole na linha de <code>' + esc(slug) + '</code> da planilha:</p>' +
+                '<div class="item"><label>Coluna <code>senha</code></label>' +
+                    '<div class="campo-acao"><input type="text" readonly value="' + esc(res.hash) + '" aria-label="Código da coluna senha">' +
+                    '<button class="btn" data-acao="copiar-campo">Copiar</button></div></div>' +
+                '<div class="item"><label>Coluna <code>senha_cifrada</code></label>' +
+                    '<div class="campo-acao"><input type="text" readonly value="' + esc(res.token) + '" aria-label="Código da coluna senha_cifrada">' +
+                    '<button class="btn" data-acao="copiar-campo">Copiar</button></div></div>' +
+                '<p>Senha para avisar o cliente: <span class="senha-valor" style="color:var(--text)">' + esc(res.senha) + '</span></p>' +
+                '</div>';
+        }
+
+        function renderCadastro(s, av) {
+            if (av.estado === "gerado") return htmlCodigos(av, s.slug);
+
+            const legado = s.formato === "legado";
+            if (av.estado === "ok" && !legado) return "";
+
+            let dica = {
+                "desatualizada": "A senha da planilha foi trocada depois que este código foi gerado. Digite a senha atual (ou uma nova) para gerar outros.",
+                "ilegivel": "O código desta linha não abre com a senha do painel. Digite a senha do cliente para gerar outro.",
+                "hash-invalido": "A coluna senha desta linha não tem um código válido. Digite a senha do cliente para gerar um novo.",
+                "sem-codigo": "Digite a senha que o cliente usa hoje (ou uma nova) para guardá-la aqui."
+            }[av.estado] || "";
+            if (legado) {
+                dica += (dica ? " " : "") + "O código da coluna senha está no formato antigo, que é fraco. Gere um novo; se a senha for curta, aproveite para trocar por uma mais forte e avisar o cliente.";
+            }
+
+            return '<form class="cadastro" data-i="' + s.i + '">' +
+                '<label for="c-' + s.i + '">Senha desta sessão</label>' +
+                '<div class="campo-acao"><input type="text" id="c-' + s.i + '" name="senha" autocomplete="off" autocapitalize="off" spellcheck="false" required>' +
+                '<button class="btn" type="button" data-acao="sugerir">Sugerir</button>' +
+                '<button class="btn btn-principal" type="submit">Gerar códigos</button></div>' +
+                '<div class="erro" role="alert"></div>' +
+                '<p class="dica">' + dica + '</p>' +
+                '</form>';
+        }
+
+        function renderLista() {
+            const termo = busca.trim().toLowerCase();
+            const filtradas = sessoes.filter(function (s) {
+                if (!termo) return true;
+                return [s.cliente, s.titulo, s.local, s.categoria, s.slug].join(" ").toLowerCase().indexOf(termo) !== -1;
+            });
+
+            const comSenha = sessoes.filter(function (s) {
+                const e = (avaliacoes[s.i] || {}).estado;
+                return e === "ok" || e === "gerado";
+            }).length;
+            const antigos = sessoes.filter(function (s) { return s.formato === "legado"; }).length;
+
+            document.getElementById("resumo").textContent =
+                sessoes.length + (sessoes.length === 1 ? " sessão com senha" : " sessões com senha") +
+                ". Senha disponível em " + comSenha + "." +
+                (antigos ? " " + antigos + (antigos === 1 ? " ainda usa" : " ainda usam") + " o formato antigo de código." : "");
+
+            const lista = document.getElementById("lista");
+
+            if (!sessoes.length) {
+                lista.innerHTML = '<div class="vazio">Nenhuma sessão com senha na planilha.</div>';
+                return;
+            }
+            if (!filtradas.length) {
+                lista.innerHTML = '<div class="vazio">Nenhuma sessão encontrada para essa busca.</div>';
+                return;
+            }
+
+            lista.innerHTML = filtradas.map(function (s) {
+                const av = avaliacoes[s.i] || { estado: "sem-codigo" };
+                const visivel = visiveis.has(s.i);
+                const capa = linkSeguro(s.capa);
+
+                return '<article class="sessao">' +
+                    '<div>' +
+                        '<span class="categoria">' + esc(s.categoria || "Sem categoria") + '</span>' +
+                        '<h2>' + esc(s.titulo || s.slug) + '</h2>' +
+                        '<p class="cliente">' + esc(s.cliente || "Cliente não informado") + '</p>' +
+                        '<div class="selos">' + selo(av.estado) +
+                            (s.formato === "legado" ? '<span class="selo aviso">Código antigo</span>' : '') + '</div>' +
+                    '</div>' +
+                    '<div>' +
+                        '<div class="linhas">' +
+                            '<div class="linha"><span class="rotulo">Local</span><span class="valor">' + (esc(s.local) || '<span class="muted">Não informado</span>') + '</span><span></span></div>' +
+                            '<div class="linha"><span class="rotulo">Data</span><span class="valor">' + (esc(s.data) || '<span class="muted">Não informada</span>') + '</span><span></span></div>' +
+                            '<div class="linha"><span class="rotulo">Identificador</span><span class="valor">' + esc(s.slug) + '</span><span></span></div>' +
+                            '<div class="linha"><span class="rotulo">Galeria</span><span class="valor"><a href="' + esc(urlGaleria(s.slug)) + '" target="_blank" rel="noopener noreferrer">Abrir galeria</a></span>' +
+                                '<span class="acoes"><button class="btn btn-pequeno" data-acao="copiar-link" data-i="' + s.i + '">Copiar link</button></span></div>' +
+                            '<div class="linha"><span class="rotulo">Fotos</span><span class="valor">' + renderFotos(s) + '</span><span></span></div>' +
+                            '<div class="linha"><span class="rotulo">Capa</span><span class="valor">' + (capa
+                                ? '<a href="' + esc(capa) + '" target="_blank" rel="noopener noreferrer">Abrir capa</a>'
+                                : '<span class="muted">Automática (primeira foto)</span>') + '</span><span></span></div>' +
+                            renderSenha(s, av, visivel) +
+                        '</div>' +
+                        renderCadastro(s, av) +
+                    '</div>' +
+                '</article>';
+            }).join("");
+        }
+
+        // ---------------------------------------------------------------
+        // Eventos (um só ouvinte para a página inteira)
+        // ---------------------------------------------------------------
+
+        app.addEventListener("click", function (ev) {
+            const botao = ev.target.closest("[data-acao]");
+            if (!botao) return;
+
+            const acao = botao.getAttribute("data-acao");
+            const i = Number(botao.getAttribute("data-i"));
+            const av = avaliacoes[i] || {};
+
+            if (acao === "recarregar") { iniciar(); }
+            else if (acao === "bloquear") { bloquear(); }
+            else if (acao === "copiar-campo") {
+                copiar(botao.closest(".campo-acao").querySelector("input").value, botao);
+            }
+            else if (acao === "sugerir") {
+                const campo = botao.closest("form").querySelector("input[name=senha]");
+                campo.value = senhaForte();
+                campo.focus();
+            }
+            else if (acao === "mostrar") {
+                if (visiveis.has(i)) visiveis.delete(i); else visiveis.add(i);
+                renderLista();
+            }
+            else if (acao === "copiar-senha" && av.senha) { copiar(av.senha, botao); }
+            else if (acao === "copiar-link" && sessoes[i]) { copiar(urlGaleria(sessoes[i].slug), botao); }
+        });
+
+        app.addEventListener("input", function (ev) {
+            if (ev.target.id === "busca") { busca = ev.target.value; renderLista(); }
+        });
+
+        app.addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            const form = ev.target;
+            if (form.id === "form-config") return aoConfigurar(form);
+            if (form.id === "form-bloqueio") return aoEntrar(form);
+            if (form.id === "form-geral") return aoGerarGeral(form);
+            if (form.classList.contains("cadastro")) return aoGerarDaSessao(form);
+        });
+
+        async function aoConfigurar(form) {
+            const erro = document.getElementById("erro");
+            const botao = document.getElementById("enviar");
+            const senha = document.getElementById("mestra").value;
+            erro.textContent = "";
+
+            if (senha.length < MIN_SENHA_PAINEL) { erro.textContent = "Use pelo menos " + MIN_SENHA_PAINEL + " caracteres."; return; }
+            if (senha !== document.getElementById("mestra2").value) { erro.textContent = "As duas senhas não são iguais."; return; }
+
+            botao.disabled = true;
+            botao.textContent = "Calculando…";
+            try {
+                const d = await derivarDaSenha(senha);
+                const segredo = paraB64(crypto.getRandomValues(new Uint8Array(32)))
+                    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+                renderSegredos(await verificadorDe(d.auth), segredo);
+            } catch (e) {
+                erro.textContent = "Não foi possível calcular neste navegador.";
+                botao.disabled = false;
+                botao.textContent = "Continuar";
+            }
+        }
+
+        async function aoEntrar(form) {
+            const erro = document.getElementById("erro");
+            const botao = document.getElementById("enviar");
+            const campo = document.getElementById("mestra");
+            erro.textContent = "";
+            botao.disabled = true;
+            botao.textContent = "Verificando…";
+
+            try {
+                const d = await derivarDaSenha(campo.value);
+                const r = await api("listar", {}, d.auth);
+
+                chave = d.chave;
+                authHex = d.auth;
+                sessoes = r.sessoes.map(function (s, i) { s.i = i; return s; });
+                avaliacoes = await avaliar();
+                visiveis = new Set();
+                busca = "";
+                renderPainel();
+                armarInatividade();
+            } catch (e) {
+                chave = null;
+                authHex = null;
+                erro.textContent = e.status === 401
+                    ? "Senha incorreta."
+                    : "Não foi possível abrir o painel agora. " + (e.message || "");
+                botao.disabled = false;
+                botao.textContent = "Abrir painel";
+                campo.select();
+            }
+        }
+
+        function validarSenhaSessao(senha) {
+            if (senha.trim().length < MIN_SENHA_SESSAO) return "A senha precisa ter pelo menos " + MIN_SENHA_SESSAO + " caracteres.";
+            return "";
+        }
+
+        async function aoGerarDaSessao(form) {
+            const i = Number(form.getAttribute("data-i"));
+            const s = sessoes[i];
+            const erro = form.querySelector(".erro");
+            const botao = form.querySelector("button[type=submit]");
+            const senha = form.querySelector("input[name=senha]").value;
+
+            erro.textContent = validarSenhaSessao(senha);
+            if (erro.textContent) return;
+
+            botao.disabled = true;
+            try {
+                const res = await gerarCodigos(s.slug, senha);
+                avaliacoes[i] = Object.assign({ estado: "gerado" }, res);
+                renderLista();
+            } catch (e) {
+                erro.textContent = e.message || "Não foi possível gerar os códigos.";
+                botao.disabled = false;
+            }
+        }
+
+        async function aoGerarGeral(form) {
+            const erro = form.querySelector(".erro");
+            const botao = form.querySelector("button[type=submit]");
+            const slug = form.querySelector("input[name=slug]").value.trim();
+            const senha = form.querySelector("input[name=senha]").value;
+            const destino = document.getElementById("resultado-geral");
+
+            erro.textContent = validarSenhaSessao(senha);
+            destino.innerHTML = "";
+            if (erro.textContent) return;
+
+            botao.disabled = true;
+            try {
+                const res = await gerarCodigos(slug, senha);
+                destino.innerHTML = htmlCodigos(res, slug);
+            } catch (e) {
+                erro.textContent = e.message || "Não foi possível gerar os códigos.";
+            }
+            botao.disabled = false;
+        }
+
+        // ---------------------------------------------------------------
+        // Travar / iniciar
+        // ---------------------------------------------------------------
+
+        function bloquear() {
+            clearTimeout(timerInativo);
+            chave = null;
+            authHex = null;
+            sessoes = [];
+            avaliacoes = {};
+            visiveis = new Set();
+            busca = "";
+            iniciar();
+        }
+
+        function armarInatividade() {
+            clearTimeout(timerInativo);
+            timerInativo = setTimeout(bloquear, TEMPO_INATIVO);
+        }
+
+        ["pointerdown", "keydown", "scroll"].forEach(function (nome) {
+            document.addEventListener(nome, function () {
+                if (chave) armarInatividade();
+            }, { passive: true });
+        });
+
+        async function iniciar() {
+            app.innerHTML = '<p class="muted">Carregando…</p>';
+            try {
+                if (!window.crypto || !crypto.subtle) {
+                    renderMensagem("Este navegador não oferece criptografia segura. Abra o painel por https, em um navegador atualizado.", false);
+                    return;
+                }
+                if (typeof urlBaseWorker !== "function") {
+                    renderMensagem("O arquivo dados.js não foi carregado.", false);
+                    return;
+                }
+                const estado = await api("estado");
+                if (estado.configurado) renderBloqueio(); else renderConfiguracao();
+            } catch (e) {
+                renderMensagem("Não foi possível falar com o Worker. Confira se ele foi atualizado e tente de novo.", true);
+            }
+        }
+
+        iniciar();
+    })();
+    </script>
+</body>
+</html>
