@@ -93,22 +93,61 @@
             padding-bottom: 4px;
         }
 
+        /* Foto do topo mesclada ao fundo da página: a imagem some
+           gradualmente para baixo e para as laterais, sem corte seco. */
         .hero-categoria {
-            height: 60vh;
-            background:
-                linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.75)),
-                url("https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600")
-                center/cover;
+            --foto: url("https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600");
+            position: relative;
+            isolation: isolate;
+            height: 82vh;
+            min-height: 540px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
             text-align: center;
-            padding: 20px;
+            padding: 140px 10% 20px;
+        }
+
+        .hero-categoria::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background: var(--foto) center 35% / cover no-repeat;
+            filter: grayscale(0.25) brightness(0.85);
+            -webkit-mask-image:
+                linear-gradient(to bottom, #000 0%, #000 30%, rgba(0,0,0,0.55) 62%, transparent 100%),
+                linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            mask-image:
+                linear-gradient(to bottom, #000 0%, #000 30%, rgba(0,0,0,0.55) 62%, transparent 100%),
+                linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+            mask-composite: intersect;
+            animation: hero-foto 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Escurece só o topo, para o menu continuar legível sobre a foto. */
+        .hero-categoria::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(15,15,15,0.7) 0%, rgba(15,15,15,0) 28%);
+        }
+
+        @keyframes hero-foto {
+            from { opacity: 0; transform: scale(1.06); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .hero-categoria::before { animation: none; }
         }
 
         .hero-categoria span {
-            color: #888;
+            color: #b5b5b5;
             font-size: 0.85rem;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -118,16 +157,22 @@
         .hero-categoria h2 {
             font-size: 3.5rem;
             margin-bottom: 20px;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
         }
 
         .hero-categoria p {
             font-size: 1.1rem;
-            color: #d0d0d0;
+            color: #d9d9d9;
             max-width: 600px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
         }
 
         section {
             padding: 100px 10%;
+        }
+
+        #sessoes {
+            padding-top: 40px;
         }
 
         section h2 {

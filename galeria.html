@@ -73,23 +73,110 @@
             opacity: 0.7;
         }
 
+        /* Cabeçalho da sessão: título grande à esquerda e uma "ficha" com
+           os dados à direita, sobre a capa mesclada ao fundo. */
         .galeria-header {
-            padding: 160px 10% 60px;
-            border-bottom: 1px solid #222;
+            position: relative;
+            isolation: isolate;
+            padding: 150px 10% 60px;
+        }
+
+        .galeria-header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: var(--capa, none) center 30% / cover no-repeat;
+            opacity: 0.55;
+            filter: grayscale(0.4);
+            -webkit-mask-image:
+                linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.6) 55%, transparent 100%),
+                linear-gradient(to left, #000 0%, transparent 85%);
+            -webkit-mask-composite: source-in;
+            mask-image:
+                linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.6) 55%, transparent 100%),
+                linear-gradient(to left, #000 0%, transparent 85%);
+            mask-composite: intersect;
+        }
+
+        .galeria-header-in {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+            gap: 40px;
+            align-items: end;
         }
 
         .voltar {
-            display: inline-block;
-            color: #888;
+            display: inline-flex;
+            align-items: center;
+            color: #d0d0d0;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             letter-spacing: 1px;
-            margin-bottom: 24px;
+            padding: 9px 18px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 50px;
+            background: rgba(15, 15, 15, 0.45);
+            backdrop-filter: blur(8px);
             transition: 0.3s;
         }
 
         .voltar:hover {
-            color: white;
+            color: #0f0f0f;
+            background: white;
+            border-color: white;
+        }
+
+        .galeria-header h2 {
+            font-size: clamp(2.4rem, 5.6vw, 4.8rem);
+            line-height: 1.02;
+            letter-spacing: -0.02em;
+            overflow-wrap: anywhere;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .ficha {
+            background: rgba(18, 18, 18, 0.62);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 6px 22px 22px;
+        }
+
+        .ficha-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 20px;
+            padding: 14px 0;
+            border-bottom: 1px solid #262626;
+        }
+
+        .ficha-linha dt {
+            color: #777;
+            font-size: 0.78rem;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .ficha-linha dd {
+            color: #f0f0f0;
+            font-size: 0.92rem;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .ficha-linha.destaque dd {
+            color: #ff6a00;
+            font-weight: 700;
+        }
+
+        .ficha .baixar-todas {
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
         }
 
         .galeria-eyebrow {
@@ -103,23 +190,6 @@
         .galeria-header h2 {
             font-size: 3rem;
             margin-bottom: 20px;
-        }
-
-        .galeria-meta {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            color: #bdbdbd;
-            font-size: 0.9rem;
-        }
-
-        .galeria-meta strong {
-            display: block;
-            color: #666;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
         }
 
         .galeria-grid {
@@ -294,7 +364,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-top: 24px;
+            margin-top: 0;
             padding: 12px 20px;
             background: white;
             border: none;
@@ -343,8 +413,9 @@
                 padding-top: 190px;
             }
 
-            .galeria-header h2 {
-                font-size: 2.2rem;
+            .galeria-header-in {
+                grid-template-columns: 1fr;
+                gap: 28px;
             }
 
         }
@@ -538,20 +609,34 @@
 
             const header = document.createElement("div");
             header.className = "galeria-header";
+            if (sessao.capa) {
+                header.style.setProperty("--capa", 'url("' + sessao.capa + '")');
+            }
+
+            const linhas = [
+                ["Cliente", sessao.cliente],
+                ["Data", sessao.data],
+                ["Local", sessao.local]
+            ].filter(function (l) { return l[1]; }).map(function (l) {
+                return `<div class="ficha-linha"><dt>${l[0]}</dt><dd>${l[1]}</dd></div>`;
+            }).join("");
+
             header.innerHTML = `
-                <a class="voltar" href="${sessao.categoriaHref}">← Voltar para ${sessao.categoria}</a>
-                <div class="galeria-eyebrow">${sessao.cliente}</div>
-                <h2>${sessao.titulo}</h2>
-                <div class="galeria-meta">
-                    <div><strong>Data</strong>${sessao.data}</div>
-                    <div><strong>Local</strong>${sessao.local}</div>
-                    <div><strong>Fotos</strong>${sessao.fotos.length}</div>
+                <div class="galeria-header-in">
+                    <div>
+                        <a class="voltar" href="${sessao.categoriaHref}">← Voltar para ${sessao.categoria}</a>
+                        <h2>${sessao.titulo}</h2>
+                    </div>
+                    <dl class="ficha">
+                        ${linhas}
+                        <div class="ficha-linha destaque"><dt>Fotos</dt><dd>${sessao.fotos.length}</dd></div>
+                        ${sessao.protegida ? `
+                        <button type="button" class="baixar-todas" id="btn-baixar-todas">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                            Baixar todas as fotos (.zip)
+                        </button>` : ""}
+                    </dl>
                 </div>
-                ${sessao.protegida ? `
-                <button type="button" class="baixar-todas" id="btn-baixar-todas">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                    Baixar todas as fotos (.zip)
-                </button>` : ""}
             `;
 
             const grid = document.createElement("div");
